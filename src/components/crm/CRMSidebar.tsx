@@ -124,14 +124,11 @@ interface CRMSidebarProps {
   onRenameCompany?: (oldName: string, newName: string) => void;
   onMergeCompany?: (sourceName: string, targetName: string) => number;
   showUserManagement?: boolean;
-  showSMSCenter?: boolean;
   showWorkforce?: boolean;
   showMyActivity?: boolean;
   showEmailVerifier?: boolean;
   showAPIIntegrations?: boolean;
-  
   showBackups?: boolean;
-  showSMTPSettings?: boolean;
   showSecurityCenter?: boolean;
 }
 
