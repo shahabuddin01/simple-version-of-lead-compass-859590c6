@@ -269,14 +269,11 @@ const Index = () => {
           return count;
         } : undefined}
         showUserManagement={permissions.canManageUsers}
-        showSMSCenter={permissions.canAccessSMS}
         showWorkforce={isAdmin}
         showMyActivity={!isAdmin}
         showEmailVerifier={isAdmin}
         showAPIIntegrations={isAdmin}
-        
         showBackups={isAdmin}
-        showSMTPSettings={isAdmin}
         showSecurityCenter={isAdmin}
       />
 
