@@ -1,21 +1,17 @@
 /**
- * Social link utilities — opens social media URLs
- * with referrer stripping to prevent platform blocking.
+ * Social link utilities — opens social media URLs reliably
+ * using anchor click method to avoid about:blank issues.
  */
 
 export function cleanSocialUrl(url: string, platform?: string): string {
   if (!url) return "";
   let clean = url.trim();
-  
-  // Remove leading apostrophes (Excel artifact)
-  clean = clean.replace(/^'+/, "");
-  
-  // Add https if missing
+  clean = clean.replace(/^'+/, "").trim();
+
   if (!clean.startsWith("http://") && !clean.startsWith("https://")) {
     clean = "https://" + clean;
   }
-  
-  // Fix common URL issues per platform
+
   if (platform === "facebook") {
     if (!clean.includes("facebook.com") && !clean.includes("fb.com")) {
       clean = "https://facebook.com/" + clean.replace(/^https?:\/\//, "");
@@ -31,29 +27,29 @@ export function cleanSocialUrl(url: string, platform?: string): string {
       clean = "https://linkedin.com/in/" + clean.replace(/^https?:\/\//, "");
     }
   }
-  
+
   return clean;
 }
 
-export function openSocialLink(url: string, platform?: string): void {
-  if (!url) return;
-  
+export function openSocialLink(url: string | null | undefined, platform?: string): void {
+  if (!url || url.trim() === "") return;
+
   const cleanUrl = cleanSocialUrl(url, platform);
   if (!cleanUrl) return;
-  
-  // Open via blank window with referrer stripped
-  const newWindow = window.open("", "_blank", "noopener");
-  if (newWindow) {
-    newWindow.document.write(
-      `<!DOCTYPE html><html><head>` +
-      `<meta name="referrer" content="no-referrer">` +
-      `<meta http-equiv="refresh" content="0;url=${encodeURI(cleanUrl)}">` +
-      `</head><body><p>Redirecting...</p>` +
-      `<script>window.location.replace(${JSON.stringify(cleanUrl)});<\/script>` +
-      `</body></html>`
-    );
-    newWindow.document.close();
+
+  try {
+    new URL(cleanUrl);
+  } catch {
+    return;
   }
+
+  const link = document.createElement("a");
+  link.href = cleanUrl;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 export function copySocialLink(url: string, platform?: string): void {
