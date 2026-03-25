@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, parseISO } from "date-fns";
 import { Plus, Upload, Download, RefreshCw, Check, X, MessageSquare, Instagram, Linkedin, Trash2, Pencil } from "lucide-react";
+import { openSocialLink, copySocialLink } from "@/lib/socialLinks";
 import { toast } from "sonner";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
