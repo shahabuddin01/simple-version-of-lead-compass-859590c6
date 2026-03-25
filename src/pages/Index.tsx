@@ -201,21 +201,21 @@ const Index = () => {
   };
 
   const viewTitles: Record<string, string> = {
-    dashboard: "Dashboard", users: "User Management", sms: "SMS Center",
+    dashboard: "Dashboard", users: "User Management",
     all: "All Leads", active: "Active Leads", inactive: "Inactive Leads",
     "workforce-live": "Live Activity", "workforce-timelogs": "Time Logs",
     "workforce-salary": "Salary Calculator", "workforce-settings": "Workforce Settings",
     "my-activity": "My Activity",
     "ev-report": "Verification Report", "ev-settings": "API Settings",
     "api-integrations": "API Dashboard",
-    "backups": "Backups", "smtp-settings": "SMTP Settings",
+    "backups": "Backups",
     "security-center": "Security Center",
   };
   const viewTitle = viewTitles[view] || "All Leads";
 
   const isWorkforceView = view.startsWith("workforce-");
   const isEVView = view.startsWith("ev-");
-  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "sms" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "smtp-settings" && view !== "security-center";
+  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center";
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
