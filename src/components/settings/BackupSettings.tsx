@@ -465,7 +465,7 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
             existing = JSON.parse(localStorage.getItem("nhproductionhouse_crm_leads") || "[]");
           } catch { existing = []; }
 
-          const existingEmails = new Set(existing.map(l => l.work_email).filter(Boolean));
+          const existingEmails = new Set(existing.map(l => l.email).filter(Boolean));
           let added = 0;
           let skipped = 0;
 
@@ -475,11 +475,11 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
           for (const batch of batches) {
             await new Promise(r => setTimeout(r, 50));
             for (const lead of batch) {
-              if (lead.work_email && existingEmails.has(lead.work_email)) {
+              if (lead.email && existingEmails.has(lead.email)) {
                 skipped++;
               } else {
                 existing.push(lead as Lead);
-                if (lead.work_email) existingEmails.add(lead.work_email);
+                if (lead.email) existingEmails.add(lead.email);
                 added++;
               }
             }
