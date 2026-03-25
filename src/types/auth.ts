@@ -18,9 +18,6 @@ export interface Permissions {
   canDeleteLead: boolean;
   canImport: boolean;
   canExport: boolean;
-  canAccessSMS: boolean;
-  canSendSMS: boolean;
-  canConfigureSMSGateway: boolean;
   canAddIndustry: boolean;
   canDeleteIndustry: boolean;
   canRenameIndustry: boolean;
@@ -43,9 +40,6 @@ export const PERMISSION_LABELS: Record<keyof Permissions, string> = {
   canDeleteLead: "Delete Lead",
   canImport: "Import CSV",
   canExport: "Export Data",
-  canAccessSMS: "Access SMS Center",
-  canSendSMS: "Send SMS",
-  canConfigureSMSGateway: "Configure SMS Gateway",
   canAddIndustry: "Add Industry / Company",
   canRenameIndustry: "Rename Industry / Company",
   canDeleteIndustry: "Delete Industry / Company",
@@ -69,9 +63,6 @@ export const PERMISSION_MATRIX_KEYS: { key: keyof Permissions; label: string }[]
   { key: "canDeleteLead", label: "Delete Lead" },
   { key: "canImport", label: "Import CSV" },
   { key: "canExport", label: "Export Data" },
-  { key: "canAccessSMS", label: "Access SMS Center" },
-  { key: "canSendSMS", label: "Send SMS" },
-  { key: "canConfigureSMSGateway", label: "Configure SMS Gateway" },
   { key: "canAddIndustry", label: "Add Industry / Company" },
   { key: "canRenameIndustry", label: "Rename Industry / Company" },
   { key: "canDeleteIndustry", label: "Delete Industry / Company" },
@@ -91,8 +82,7 @@ export const LOCKED_PERMISSIONS: Record<keyof Permissions, Partial<Record<UserRo
   canEditPermissions: { Admin: true },
   // Rest are not locked
   canAddLead: {}, canEditAnyLead: {}, canEditOwnLead: {}, canDeleteLead: {},
-  canImport: {}, canExport: {}, canAccessSMS: {}, canSendSMS: {},
-  canConfigureSMSGateway: {}, canAddIndustry: {}, canDeleteIndustry: {},
+  canImport: {}, canExport: {}, canAddIndustry: {}, canDeleteIndustry: {},
   canRenameIndustry: {}, canMergeCompany: {}, canAddCompany: {},
   canDeleteCompany: {}, canRenameCompany: {}, canBulkStatusUpdate: {},
   canToggleActive: {},
@@ -102,7 +92,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Permissions> = {
   Admin: {
     canViewLeads: true, canAddLead: true, canEditAnyLead: true, canEditOwnLead: true,
     canDeleteLead: true, canImport: true, canExport: true,
-    canAccessSMS: true, canSendSMS: true, canConfigureSMSGateway: true,
     canAddIndustry: true, canDeleteIndustry: true, canRenameIndustry: true,
     canMergeCompany: true, canAddCompany: true, canDeleteCompany: true, canRenameCompany: true,
     canBulkStatusUpdate: true, canToggleActive: true, canViewDashboard: true,
@@ -111,7 +100,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Permissions> = {
   Manager: {
     canViewLeads: true, canAddLead: true, canEditAnyLead: true, canEditOwnLead: true,
     canDeleteLead: false, canImport: true, canExport: false,
-    canAccessSMS: true, canSendSMS: true, canConfigureSMSGateway: false,
     canAddIndustry: true, canDeleteIndustry: false, canRenameIndustry: true,
     canMergeCompany: false, canAddCompany: true, canDeleteCompany: false, canRenameCompany: true,
     canBulkStatusUpdate: true, canToggleActive: true, canViewDashboard: true,
@@ -120,7 +108,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Permissions> = {
   Employee: {
     canViewLeads: true, canAddLead: true, canEditAnyLead: false, canEditOwnLead: true,
     canDeleteLead: false, canImport: false, canExport: false,
-    canAccessSMS: false, canSendSMS: false, canConfigureSMSGateway: false,
     canAddIndustry: false, canDeleteIndustry: false, canRenameIndustry: false,
     canMergeCompany: false, canAddCompany: false, canDeleteCompany: false, canRenameCompany: false,
     canBulkStatusUpdate: false, canToggleActive: true, canViewDashboard: true,
@@ -129,7 +116,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Permissions> = {
   Viewer: {
     canViewLeads: true, canAddLead: false, canEditAnyLead: false, canEditOwnLead: false,
     canDeleteLead: false, canImport: false, canExport: false,
-    canAccessSMS: false, canSendSMS: false, canConfigureSMSGateway: false,
     canAddIndustry: false, canDeleteIndustry: false, canRenameIndustry: false,
     canMergeCompany: false, canAddCompany: false, canDeleteCompany: false, canRenameCompany: false,
     canBulkStatusUpdate: false, canToggleActive: false, canViewDashboard: true,
