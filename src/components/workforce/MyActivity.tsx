@@ -59,14 +59,13 @@ export function MyActivity() {
   const monthClicks = monthSessions.reduce((s, sess) => s + sess.totalClicks, 0);
   const mLeadsAdded = monthLogs.filter(l => l.action === "lead_added").length;
   const mLeadsEdited = monthLogs.filter(l => l.action === "lead_edited").length;
-  const mSmsSent = monthLogs.filter(l => l.action === "sms_sent").length;
   let monthTotalMs = 0;
   monthSessions.forEach(s => { monthTotalMs += (s.endTime || Date.now()) - s.startTime; });
 
   const monthScore = calcProductivityScore(
     monthActiveMs / 60000, monthTotalMs / 60000,
     monthActions, monthClicks,
-    mLeadsAdded + mLeadsEdited, mSmsSent
+    mLeadsAdded + mLeadsEdited
   );
 
   const activeHours = monthActiveMs / 3600000;
