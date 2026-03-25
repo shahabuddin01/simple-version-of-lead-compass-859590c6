@@ -13,22 +13,22 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
   }
 
   const cleanUrl = cleanSocialUrl(url, platform.toLowerCase());
-  const handleWrapperPointerDown = (e: MouseEvent<HTMLSpanElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
 
-  const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
+    // Force open in top-level context to escape iframe
+    e.preventDefault();
+    window.open(cleanUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <span onMouseDown={handleWrapperPointerDown} className="inline-flex">
+    <span onMouseDown={(e) => e.stopPropagation()} className="inline-flex">
       <a
         href={cleanUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={handleLinkClick}
+        referrerPolicy="no-referrer"
+        onClick={handleClick}
         title={`Open ${platform} profile`}
       >
         {children}
