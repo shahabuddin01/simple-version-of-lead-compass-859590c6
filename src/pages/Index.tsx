@@ -42,7 +42,7 @@ const Index = () => {
     leads, filteredLeads, view, setView, filter, setFilter,
     sortBy, setSortBy, stats, industries, companies,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
-    bulkUpdateStatus, bulkSetActive,
+    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads, deletePageLeads,
     allTags, allFolders, allListSources,
     addIndustry, addCompany, deleteByIndustry, deleteByCompany,
     renameIndustry, renameCompany, mergeCompany,
