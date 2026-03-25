@@ -26,6 +26,7 @@ interface BulkActionBarProps {
   onDeletePage?: () => void;
   onDeleteByPages?: () => void;
   onDeleteAll?: () => void;
+  onAddToClientComm?: () => void;
   pageLeadCount?: number;
   totalLeads?: number;
 }
