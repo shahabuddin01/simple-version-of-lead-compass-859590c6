@@ -1,6 +1,6 @@
 // ── Security Utilities for NH Production House CRM ──
-// NOTE: This is a demo-grade client-side security layer.
-// For production, use server-side auth (e.g., Supabase Auth) + bcrypt.
+// Client-side security layer for local/demo mode.
+// Production uses PHP backend with bcrypt + MySQL sessions.
 
 // ── Input Sanitization (XSS Prevention) ──
 export function sanitize(str: string): string {
