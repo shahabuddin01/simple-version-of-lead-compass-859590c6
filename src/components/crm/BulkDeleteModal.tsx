@@ -70,6 +70,17 @@ export function BulkDeleteModal({
     setSelectAllPages(false);
   };
 
+  const applyRange = useCallback((from: number, to: number) => {
+    setRangeError("");
+    if (from < 1) { setRangeError("Start page must be at least 1"); return; }
+    if (to > totalPages) { setRangeError(`End page cannot exceed ${totalPages}`); return; }
+    if (from > to) { setRangeError("Start page cannot be greater than end page"); return; }
+    const newSet = new Set<number>();
+    for (let i = from; i <= to; i++) newSet.add(i);
+    setSelectedPages(newSet);
+    setSelectAllPages(newSet.size === totalPages);
+  }, [totalPages]);
+
   const handleConfirm = () => {
     if (mode === "pages") {
       onConfirmDelete("pages", [...selectedPages].sort((a, b) => a - b));
