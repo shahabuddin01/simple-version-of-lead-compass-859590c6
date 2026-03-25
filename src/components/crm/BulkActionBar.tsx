@@ -31,7 +31,7 @@ interface BulkActionBarProps {
   totalLeads?: number;
 }
 
-export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, pageLeadCount, totalLeads }: BulkActionBarProps) {
+export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, onAddToClientComm, pageLeadCount, totalLeads }: BulkActionBarProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
