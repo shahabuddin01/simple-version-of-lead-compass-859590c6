@@ -303,8 +303,6 @@ const Index = () => {
         <main className="flex-1 overflow-y-auto p-6">
           {view === "users" && permissions.canManageUsers ? (
             <UserManagement />
-          ) : view === "sms" && permissions.canAccessSMS ? (
-            <SMSCenter leads={leads} industries={industries} companies={companies} />
           ) : view === "workforce-live" && isAdmin ? (
             <LiveActivity />
           ) : view === "workforce-timelogs" && isAdmin ? (
@@ -319,8 +317,6 @@ const Index = () => {
             <APIDashboard />
           ) : view === "backups" && isAdmin ? (
             <BackupSettings leads={leads} />
-          ) : view === "smtp-settings" && isAdmin ? (
-            <SMTPSettings />
           ) : view === "security-center" && isAdmin ? (
             <SecurityCenter leads={leads} />
           ) : isEVView && isAdmin ? (
