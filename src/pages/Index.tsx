@@ -397,6 +397,8 @@ const Index = () => {
             <BackupSettings leads={leads} />
           ) : view === "security-center" && isAdmin ? (
             <SecurityCenter leads={leads} />
+          ) : view === "client-communications" ? (
+            <ClientCommunicationPage leads={leads} />
           ) : isEVView && isAdmin ? (
             view === "ev-report" ? <VerificationReport /> : <APISettings />
           ) : view === "dashboard" ? (
