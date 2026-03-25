@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format, parseISO } from "date-fns";
 import { Plus, Upload, Download, RefreshCw, Check, X, MessageSquare, Instagram, Linkedin, Trash2, Pencil } from "lucide-react";
+import { openSocialLink, copySocialLink } from "@/lib/socialLinks";
 import { toast } from "sonner";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
@@ -609,29 +610,32 @@ export function ClientCommunicationPage({ leads = [] }: Props) {
                   <div className="flex items-center justify-center gap-1">
                     {c.linkedin ? (
                       <Tooltip><TooltipTrigger asChild>
-                        <a href={c.linkedin} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
-                          <div className="w-6 h-6 rounded flex items-center justify-center bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors">
-                            <Linkedin className="w-3 h-3 text-white" />
-                          </div>
-                        </a>
+                        <div onClick={e => { e.stopPropagation(); openSocialLink(c.linkedin, 'linkedin'); }}
+                          onContextMenu={e => { e.preventDefault(); e.stopPropagation(); copySocialLink(c.linkedin, 'linkedin'); }}
+                          title="Open LinkedIn (right-click to copy URL)"
+                          className="w-6 h-6 rounded flex items-center justify-center bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors">
+                          <Linkedin className="w-3 h-3 text-white" />
+                        </div>
                       </TooltipTrigger><TooltipContent className="text-xs">Open LinkedIn</TooltipContent></Tooltip>
                     ) : <span className="text-muted-foreground text-[10px]">—</span>}
                     {c.facebook ? (
                       <Tooltip><TooltipTrigger asChild>
-                        <a href={c.facebook} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
-                          <div className="w-6 h-6 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1877F2' }}>
-                            <span className="text-white text-[10px] font-bold">f</span>
-                          </div>
-                        </a>
+                        <div onClick={e => { e.stopPropagation(); openSocialLink(c.facebook, 'facebook'); }}
+                          onContextMenu={e => { e.preventDefault(); e.stopPropagation(); copySocialLink(c.facebook, 'facebook'); }}
+                          title="Open Facebook (right-click to copy URL)"
+                          className="w-6 h-6 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1877F2' }}>
+                          <span className="text-white text-[10px] font-bold">f</span>
+                        </div>
                       </TooltipTrigger><TooltipContent className="text-xs">Open Facebook</TooltipContent></Tooltip>
                     ) : <span className="text-muted-foreground text-[10px]">—</span>}
                     {c.instagram ? (
                       <Tooltip><TooltipTrigger asChild>
-                        <a href={c.instagram} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
-                          <div className="w-6 h-6 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}>
-                            <Instagram className="w-3 h-3 text-white" />
-                          </div>
-                        </a>
+                        <div onClick={e => { e.stopPropagation(); openSocialLink(c.instagram, 'instagram'); }}
+                          onContextMenu={e => { e.preventDefault(); e.stopPropagation(); copySocialLink(c.instagram, 'instagram'); }}
+                          title="Open Instagram (right-click to copy URL)"
+                          className="w-6 h-6 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}>
+                          <Instagram className="w-3 h-3 text-white" />
+                        </div>
                       </TooltipTrigger><TooltipContent className="text-xs">Open Instagram</TooltipContent></Tooltip>
                     ) : <span className="text-muted-foreground text-[10px]">—</span>}
                   </div>
