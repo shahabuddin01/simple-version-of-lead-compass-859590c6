@@ -86,28 +86,6 @@ CREATE TABLE IF NOT EXISTS api_credentials (
   INDEX idx_active (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- API Allowed Origins
-CREATE TABLE IF NOT EXISTS api_allowed_origins (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  label VARCHAR(255),
-  origin_url VARCHAR(500) NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- API Request Logs
-CREATE TABLE IF NOT EXISTS api_request_logs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  endpoint VARCHAR(255),
-  method VARCHAR(10),
-  api_key_label VARCHAR(255),
-  status_code INT,
-  ip_address VARCHAR(45),
-  response_time_ms INT,
-  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_requested (requested_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- Backup Logs
 CREATE TABLE IF NOT EXISTS backup_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -116,20 +94,6 @@ CREATE TABLE IF NOT EXISTS backup_logs (
   record_count INT,
   status VARCHAR(50),
   backup_data LONGTEXT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- SMTP Settings
-CREATE TABLE IF NOT EXISTS smtp_settings (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  host VARCHAR(255),
-  port INT DEFAULT 587,
-  encryption ENUM('tls','ssl','none') DEFAULT 'tls',
-  username VARCHAR(255),
-  password VARCHAR(255),
-  sender_name VARCHAR(255),
-  sender_email VARCHAR(255),
-  is_active BOOLEAN DEFAULT true,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Security Settings
@@ -202,104 +166,6 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   INDEX idx_expires (expires_at),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Webhooks
-CREATE TABLE IF NOT EXISTS api_webhooks (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  url VARCHAR(500) NOT NULL,
-  events TEXT NOT NULL,
-  secret_key VARCHAR(255),
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Webhook Logs
-CREATE TABLE IF NOT EXISTS api_webhook_logs (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  webhook_id INT NOT NULL,
-  event VARCHAR(100),
-  payload TEXT,
-  response_status INT,
-  response_body TEXT,
-  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (webhook_id) REFERENCES api_webhooks(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- SMS Queue (jobs waiting to be sent by mobile app)
-CREATE TABLE IF NOT EXISTS sms_queue (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  lead_id INT,
-  lead_name VARCHAR(255),
-  phone_number VARCHAR(50) NOT NULL,
-  message TEXT NOT NULL,
-  sim_preference ENUM('SIM1','SIM2','ANY') DEFAULT 'ANY',
-  status ENUM('PENDING','PICKED','SENT','FAILED','CANCELLED') DEFAULT 'PENDING',
-  priority INT DEFAULT 1,
-  retry_count INT DEFAULT 0,
-  max_retries INT DEFAULT 3,
-  device_id VARCHAR(100),
-  picked_at TIMESTAMP NULL,
-  sent_at TIMESTAMP NULL,
-  failed_at TIMESTAMP NULL,
-  failure_reason TEXT,
-  created_by INT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_status (status),
-  INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- SMS Delivery Reports
-CREATE TABLE IF NOT EXISTS sms_delivery_reports (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  sms_queue_id INT NOT NULL,
-  device_id VARCHAR(100),
-  sim_used ENUM('SIM1','SIM2'),
-  phone_number VARCHAR(50),
-  delivery_status ENUM('DELIVERED','FAILED','PENDING') DEFAULT 'PENDING',
-  error_code VARCHAR(50),
-  error_message TEXT,
-  reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (sms_queue_id) REFERENCES sms_queue(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Registered Mobile Devices
-CREATE TABLE IF NOT EXISTS sms_devices (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  device_id VARCHAR(100) UNIQUE NOT NULL,
-  device_name VARCHAR(255),
-  sim1_number VARCHAR(50),
-  sim2_number VARCHAR(50),
-  sim1_carrier VARCHAR(100),
-  sim2_carrier VARCHAR(100),
-  is_active TINYINT(1) DEFAULT 1,
-  last_ping_at TIMESTAMP NULL,
-  app_version VARCHAR(20),
-  registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_device_id (device_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- SMS Templates
-CREATE TABLE IF NOT EXISTS sms_templates (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  content TEXT NOT NULL,
-  variables TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- SMS Settings
-CREATE TABLE IF NOT EXISTS sms_settings (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  setting_key VARCHAR(255) UNIQUE NOT NULL,
-  setting_value TEXT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT IGNORE INTO sms_settings (setting_key, setting_value) VALUES
-  ('default_sim', 'ANY'),
-  ('max_sms_per_minute', '10'),
-  ('retry_delay_minutes', '5'),
-  ('poll_interval_seconds', '30');
 
 -- =========================================
 -- DEFAULT ADMIN USER
