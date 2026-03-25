@@ -98,7 +98,7 @@ export function MyActivity() {
       lead_viewed: "Viewed a lead", status_updated: "Updated lead status",
       bulk_action: `Bulk action on ${meta?.count || "?"} leads`,
       csv_imported: `Imported CSV (${meta?.count || "?"} leads)`,
-      csv_exported: "Exported data", sms_sent: `Sent SMS to ${meta?.count || "?"} contacts`,
+      csv_exported: "Exported data",
       search_performed: "Searched leads", filter_applied: "Applied filter",
       page_navigated: `Navigated to ${meta?.page || "a page"}`,
     };

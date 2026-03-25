@@ -117,7 +117,7 @@ export function LiveActivity() {
     const labels: Record<string, string> = {
       lead_added: "Added leads", lead_edited: "Edited leads", lead_deleted: "Deleted leads",
       lead_viewed: "Viewed leads", status_updated: "Status updates", bulk_action: "Bulk actions",
-      csv_imported: "CSV imports", csv_exported: "CSV exports", sms_sent: "SMS sent",
+      csv_imported: "CSV imports", csv_exported: "CSV exports",
       search_performed: "Searches", filter_applied: "Filters", page_navigated: "Navigation",
     };
     return labels[a] || a;

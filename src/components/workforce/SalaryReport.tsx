@@ -104,12 +104,11 @@ export function SalaryReport() {
       const totalClicks = userSessions.reduce((sum, s) => sum + s.totalClicks, 0);
       const leadsAdded = userLogs.filter(l => l.action === "lead_added").length;
       const leadsEdited = userLogs.filter(l => l.action === "lead_edited").length;
-      const smsSent = userLogs.filter(l => l.action === "sms_sent").length;
 
       const score = calcProductivityScore(
         totalActiveMs / 60000, totalDurationMs / 60000,
         totalActions, totalClicks,
-        leadsAdded + leadsEdited, smsSent
+        leadsAdded + leadsEdited
       );
 
       // Performance bonus from salary config

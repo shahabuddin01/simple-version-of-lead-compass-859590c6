@@ -78,12 +78,11 @@ export function TimeLogs() {
 
     const leadsAdded = dayLogs.filter(l => l.action === "lead_added").length;
     const leadsEdited = dayLogs.filter(l => l.action === "lead_edited").length;
-    const smsSent = dayLogs.filter(l => l.action === "sms_sent").length;
 
     const score = calcProductivityScore(
       entry.activeTime / 60000, entry.totalDuration / 60000,
       entry.totalActions, entry.totalClicks,
-      leadsAdded + leadsEdited, smsSent
+      leadsAdded + leadsEdited
     );
 
     return { ...entry, dayHourly, score, badge: getScoreBadge(score) };
