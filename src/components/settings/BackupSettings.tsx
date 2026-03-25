@@ -249,7 +249,7 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
         },
         leads,
         email_verification_cache: [],
-        industries: [...new Set(leads.map(l => l.industry).filter(Boolean))],
+        industries: [...new Set(leads.map(l => l.type).filter(Boolean))],
         companies: [...new Set(leads.map(l => l.company).filter(Boolean))],
       };
 
