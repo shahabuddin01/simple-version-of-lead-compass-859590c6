@@ -152,22 +152,59 @@ export function BulkDeleteModal({
           <p className="text-sm text-muted-foreground">
             Total leads: {totalLeads.toLocaleString()} across {totalPages} pages ({leadsPerPage} leads per page)
           </p>
-          <div className="flex-1 overflow-y-auto space-y-2 border rounded-md p-3 max-h-[300px]">
-            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer pb-2 border-b border-border">
-              <Checkbox checked={selectAllPages} onCheckedChange={(c) => handleSelectAllPages(!!c)} />
-              Select All Pages
-            </label>
-            {Array.from({ length: totalPages }, (_, i) => {
-              const page = i + 1;
-              const start = i * leadsPerPage + 1;
-              const end = Math.min((i + 1) * leadsPerPage, totalLeads);
-              return (
-                <label key={page} className="flex items-center gap-2 text-sm cursor-pointer hover:text-foreground">
-                  <Checkbox checked={selectedPages.has(page)} onCheckedChange={() => togglePage(page)} />
-                  Page {page} (leads {start}–{end})
-                </label>
-              );
-            })}
+          <div className="flex-1 overflow-y-auto space-y-3 max-h-[380px]">
+            {/* Select All */}
+            <div className="border rounded-md p-3">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <Checkbox checked={selectAllPages} onCheckedChange={(c) => handleSelectAllPages(!!c)} />
+                Select All Pages
+              </label>
+            </div>
+
+            {/* Page Range Input */}
+            <div className="border rounded-md p-3 space-y-2.5">
+              <p className="text-xs font-medium text-muted-foreground text-center">── Or enter a page range ──</p>
+              <div className="flex items-end gap-2">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs text-muted-foreground">From page:</label>
+                  <Input type="number" min={1} max={totalPages} value={rangeFrom} onChange={(e) => { setRangeFrom(Number(e.target.value)); setRangeError(""); }} className="h-8 text-sm" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs text-muted-foreground">To page:</label>
+                  <Input type="number" min={1} max={totalPages} value={rangeTo} onChange={(e) => { setRangeTo(Number(e.target.value)); setRangeError(""); }} className="h-8 text-sm" />
+                </div>
+                <button onClick={() => applyRange(rangeFrom, rangeTo)}
+                  className="rounded-md bg-primary px-3 h-8 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap">
+                  Apply Range
+                </button>
+              </div>
+              {rangeError && <p className="text-xs text-destructive">{rangeError}</p>}
+              <p className="text-[11px] text-muted-foreground">Examples: 1–3 selects pages 1,2,3 · 1–1 selects page 1 only</p>
+              <div className="flex gap-1.5 flex-wrap">
+                <button onClick={() => { const to = Math.min(5, totalPages); setRangeFrom(1); setRangeTo(to); applyRange(1, to); }}
+                  className="rounded border border-input bg-background px-2 py-1 text-[11px] font-medium hover:bg-accent transition-colors">First 5 pages</button>
+                <button onClick={() => { const from = Math.max(1, totalPages - 4); setRangeFrom(from); setRangeTo(totalPages); applyRange(from, totalPages); }}
+                  className="rounded border border-input bg-background px-2 py-1 text-[11px] font-medium hover:bg-accent transition-colors">Last 5 pages</button>
+                <button onClick={() => { setSelectedPages(new Set()); setSelectAllPages(false); setRangeFrom(1); setRangeTo(1); setRangeError(""); }}
+                  className="rounded border border-input bg-background px-2 py-1 text-[11px] font-medium hover:bg-accent transition-colors">Clear Selection</button>
+              </div>
+            </div>
+
+            {/* Manual page checkboxes */}
+            <div className="border rounded-md p-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground text-center">── Or select pages manually ──</p>
+              {Array.from({ length: totalPages }, (_, i) => {
+                const page = i + 1;
+                const start = i * leadsPerPage + 1;
+                const end = Math.min((i + 1) * leadsPerPage, totalLeads);
+                return (
+                  <label key={page} className="flex items-center gap-2 text-sm cursor-pointer hover:text-foreground">
+                    <Checkbox checked={selectedPages.has(page)} onCheckedChange={() => togglePage(page)} />
+                    Page {page} (leads {start}–{end})
+                  </label>
+                );
+              })}
+            </div>
           </div>
           {selectedPages.size > 0 && (
             <p className="text-sm font-medium">
