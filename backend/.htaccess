@@ -1,17 +1,16 @@
+Options -Indexes
 RewriteEngine On
-
-# Route all API requests through index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-# Security — block access to config files
-<FilesMatch "\.(env|sql|md)$">
-    Order allow,deny
-    Deny from all
+# Block sensitive files
+<FilesMatch "\.(env|sql|log|sh|md)$">
+  Order allow,deny
+  Deny from all
 </FilesMatch>
 
-# Block access to config directory
+# Block config directory access
 <IfModule mod_rewrite.c>
-    RewriteRule ^config/ - [F,L]
+  RewriteRule ^config/ - [F,L]
 </IfModule>

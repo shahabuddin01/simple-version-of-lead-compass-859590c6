@@ -4,6 +4,9 @@
  * Routes all /backend/api/* requests to the correct handler
  */
 
+require_once __DIR__ . '/config/env.php';
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/helpers/response.php';
 require_once __DIR__ . '/middleware/cors.php';
 
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -20,12 +23,16 @@ $subAction = $segments[2] ?? null;
 switch ($resource) {
     case 'auth':
         $file = $action ?? 'login';
-        $filePath = __DIR__ . "/api/auth/{$file}.php";
-        if (file_exists($filePath)) {
-            require $filePath;
+        $allowed = ['login', 'logout', 'me', 'session', 'reset-password'];
+        if (in_array($file, $allowed)) {
+            $filePath = __DIR__ . "/api/auth/{$file}.php";
+            if (file_exists($filePath)) {
+                require $filePath;
+            } else {
+                jsonResponse(['error' => "Auth endpoint '$file' not found"], 404);
+            }
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => "Auth endpoint '$file' not found"]);
+            jsonResponse(['error' => "Auth endpoint '$file' not found"], 404);
         }
         break;
 
@@ -34,6 +41,8 @@ switch ($resource) {
             require __DIR__ . '/api/leads/delete-bulk.php';
         } elseif ($action === 'bulk') {
             require __DIR__ . '/api/leads/bulk.php';
+        } elseif ($action === 'export') {
+            require __DIR__ . '/api/leads/export.php';
         } elseif ($action && is_numeric($action)) {
             $_REQUEST['lead_id'] = (int) $action;
             require __DIR__ . '/api/leads/single.php';
@@ -65,28 +74,43 @@ switch ($resource) {
 
     case 'settings':
         $settingType = $action ?? '';
-        $filePath = __DIR__ . "/api/settings/{$settingType}.php";
-        if (file_exists($filePath)) {
-            require $filePath;
+        $allowed = ['smtp', 'general'];
+        if (in_array($settingType, $allowed)) {
+            require __DIR__ . "/api/settings/{$settingType}.php";
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => "Settings endpoint '$settingType' not found"]);
+            jsonResponse(['error' => "Settings endpoint '$settingType' not found"], 404);
         }
         break;
 
     case 'security':
-        $secAction = $action ?? 'index';
-        $filePath = __DIR__ . "/api/security/{$secAction}.php";
-        if (file_exists($filePath)) {
-            require $filePath;
+        $secAction = $action ?? 'activity';
+        $map = [
+            'activity' => 'activity.php',
+            'activity-log' => 'activity-log.php',
+            'blocked-ips' => 'blocked-ips.php',
+            'login-attempts' => 'login-attempts.php',
+        ];
+        if (isset($map[$secAction])) {
+            require __DIR__ . '/api/security/' . $map[$secAction];
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => "Security endpoint '$secAction' not found"]);
+            jsonResponse(['error' => "Security endpoint '$secAction' not found"], 404);
+        }
+        break;
+
+    case 'api-keys':
+        if ($action === 'logs') {
+            require __DIR__ . '/api/api-keys/logs.php';
+        } else {
+            require __DIR__ . '/api/api-keys/index.php';
         }
         break;
 
     case 'client-communications':
-        if ($action && is_numeric($action)) {
+        if ($action === 'sync') {
+            require __DIR__ . '/api/client-communications/sync.php';
+        } elseif ($action === 'import') {
+            require __DIR__ . '/api/client-communications/import.php';
+        } elseif ($action && is_numeric($action)) {
             $_REQUEST['client_id'] = (int) $action;
             require __DIR__ . '/api/client-communications/single.php';
         } else {
@@ -108,9 +132,5 @@ switch ($resource) {
         break;
 
     default:
-        http_response_code(404);
-        echo json_encode([
-            'error' => 'Endpoint not found',
-            'available' => ['auth', 'leads', 'users', 'backup', 'verify', 'settings', 'security', 'health'],
-        ]);
+        jsonResponse(['error' => 'Endpoint not found'], 404);
 }
