@@ -203,6 +203,79 @@ const Index = () => {
     setSelectedIds(new Set());
   };
 
+  const LEADS_PER_PAGE = 50;
+  const currentPage = 0; // LeadTable manages its own page internally; for delete we track from filteredLeads
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / LEADS_PER_PAGE));
+  const pageLeads = filteredLeads.slice(currentPage * LEADS_PER_PAGE, (currentPage + 1) * LEADS_PER_PAGE);
+
+  const handleBulkDelete = async (mode: "selected" | "page" | "pages" | "all", pages?: number[]) => {
+    const total = mode === "selected" ? selectedIds.size
+      : mode === "page" ? pageLeads.length
+      : mode === "pages" ? (pages || []).reduce((sum, p) => sum + Math.min(LEADS_PER_PAGE, filteredLeads.length - (p - 1) * LEADS_PER_PAGE), 0)
+      : leads.length;
+
+    setDeleteProgress({ running: true, current: 0, total, step: "Preparing...", done: false, deletedCount: 0 });
+
+    // Auto backup before delete all
+    if (mode === "all") {
+      setDeleteProgress(p => p ? { ...p, step: "Creating safety backup before deletion..." } : p);
+      // Create backup in localStorage
+      try {
+        const backupData = {
+          metadata: { crm_name: "NH Production House", backup_date: new Date().toISOString(), crm_version: "1.0", total_leads: leads.length },
+          leads: leads,
+        };
+        const backups = JSON.parse(localStorage.getItem("nhproductionhouse_backups") || "[]");
+        backups.unshift({ id: crypto.randomUUID(), date: new Date().toISOString(), size: JSON.stringify(backupData).length, leadCount: leads.length, status: "auto-backup-before-delete", data: backupData });
+        localStorage.setItem("nhproductionhouse_backups", JSON.stringify(backups));
+      } catch { /* best effort */ }
+      setDeleteProgress(p => p ? { ...p, step: "Safety backup created — now deleting..." } : p);
+    }
+
+    // Simulate progress for visual feedback
+    setDeleteProgress(p => p ? { ...p, step: "Deleting leads...", current: 0 } : p);
+
+    await new Promise(r => setTimeout(r, 300));
+
+    let deletedCount = 0;
+    if (mode === "selected") {
+      bulkDeleteLeads(selectedIds);
+      deletedCount = selectedIds.size;
+      setSelectedIds(new Set());
+    } else if (mode === "page") {
+      const ids = pageLeads.map(l => l.id);
+      deletePageLeads(ids);
+      deletedCount = ids.length;
+    } else if (mode === "pages" && pages) {
+      const idsToDelete: string[] = [];
+      for (const p of pages) {
+        const start = (p - 1) * LEADS_PER_PAGE;
+        const end = start + LEADS_PER_PAGE;
+        idsToDelete.push(...filteredLeads.slice(start, end).map(l => l.id));
+      }
+      deletePageLeads(idsToDelete);
+      deletedCount = idsToDelete.length;
+    } else if (mode === "all") {
+      deletedCount = leads.length;
+      deleteAllLeads();
+    }
+
+    setSelectedIds(new Set());
+
+    // Animate progress completion
+    setDeleteProgress({ running: false, current: deletedCount, total: deletedCount, step: "Complete", done: true, deletedCount });
+
+    if (mode === "all") {
+      toast.success(`✅ All leads deleted. Safety backup saved in Backups section in case you need to restore.`);
+    } else {
+      toast.success(`✅ ${deletedCount} leads deleted successfully`);
+    }
+
+    logAudit(currentUser.email, currentUser.id, 'BULK_DELETE', `Deleted ${deletedCount} leads — mode: ${mode}`);
+    trackAction("bulk_action", { type: "delete", count: deletedCount });
+  };
+
+
   const viewTitles: Record<string, string> = {
     dashboard: "Dashboard", users: "User Management",
     all: "All Leads", active: "Active Leads", inactive: "Inactive Leads",
