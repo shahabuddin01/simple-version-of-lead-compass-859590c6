@@ -428,11 +428,6 @@ export function CRMSidebar({
             </div>
           )}
 
-          {showSMTPSettings && (
-            <div className="relative">
-              {navItem("SMTP Settings", <Mail className="h-4 w-4" />, "smtp-settings", 0)}
-            </div>
-          )}
 
           {showSecurityCenter && (
             <>
