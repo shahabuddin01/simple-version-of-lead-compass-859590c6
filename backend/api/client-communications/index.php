@@ -5,6 +5,8 @@ require_once __DIR__ . '/../../middleware/auth.php';
 
 header('Content-Type: application/json');
 
+$user = authenticate();
+$db = (new Database())->connect();
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
@@ -29,11 +31,11 @@ if ($method === 'GET') {
   $limit = min((int)($_GET['limit'] ?? 50), 1000);
   $offset = max((int)($_GET['offset'] ?? 0), 0);
 
-  $stmt = db()->prepare("SELECT COUNT(*) FROM client_communications WHERE $whereStr");
+  $stmt = $db->prepare("SELECT COUNT(*) FROM client_communications WHERE $whereStr");
   $stmt->execute($params);
   header('X-Total-Count: ' . $stmt->fetchColumn());
 
-  $stmt = db()->prepare("SELECT * FROM client_communications WHERE $whereStr ORDER BY created_at DESC LIMIT $limit OFFSET $offset");
+  $stmt = $db->prepare("SELECT * FROM client_communications WHERE $whereStr ORDER BY created_at DESC LIMIT $limit OFFSET $offset");
   $stmt->execute($params);
   echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
   exit;
@@ -41,13 +43,28 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
   $data = json_decode(file_get_contents('php://input'), true);
-  $stmt = db()->prepare(
+
+  $name = htmlspecialchars(trim($data['name'] ?? ''));
+  $company = htmlspecialchars(trim($data['company'] ?? ''));
+
+  // Check for duplicate
+  if (!empty($name) && !empty($company)) {
+    $check = $db->prepare("SELECT id FROM client_communications WHERE name = ? AND company = ? LIMIT 1");
+    $check->execute([$name, $company]);
+    if ($check->fetch()) {
+      http_response_code(409);
+      echo json_encode(['error' => 'Already exists', 'message' => 'This contact is already in Client Communication']);
+      exit;
+    }
+  }
+
+  $stmt = $db->prepare(
     "INSERT INTO client_communications (name, designation, company, linkedin, facebook, instagram, lead_status, lead_collected_date, mail_status, mail_sent_date, comments) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
   );
   $stmt->execute([
-    $data['name'] ?? '',
-    $data['designation'] ?? '',
-    $data['company'] ?? '',
+    $name,
+    htmlspecialchars($data['designation'] ?? ''),
+    $company,
     $data['linkedin'] ?? null,
     $data['facebook'] ?? null,
     $data['instagram'] ?? null,
@@ -55,10 +72,10 @@ if ($method === 'POST') {
     $data['lead_collected_date'] ?: null,
     $data['mail_status'] ?? 'not_send',
     $data['mail_sent_date'] ?: null,
-    $data['comments'] ?? ''
+    htmlspecialchars($data['comments'] ?? '')
   ]);
-  $id = db()->lastInsertId();
-  $stmt = db()->prepare("SELECT * FROM client_communications WHERE id = ?");
+  $id = $db->lastInsertId();
+  $stmt = $db->prepare("SELECT * FROM client_communications WHERE id = ?");
   $stmt->execute([$id]);
   http_response_code(201);
   echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));

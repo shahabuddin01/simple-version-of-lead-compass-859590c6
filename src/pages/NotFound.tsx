@@ -1,15 +1,7 @@
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
 
 const NotFound = () => {
   const location = useLocation();
-
-  // 404 logged only in development
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.warn("404:", location.pathname);
-    }
-  }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">

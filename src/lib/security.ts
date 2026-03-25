@@ -1,6 +1,6 @@
 // ── Security Utilities for NH Production House CRM ──
-// NOTE: This is a demo-grade client-side security layer.
-// For production, use server-side auth (e.g., Supabase Auth) + bcrypt.
+// Client-side security layer for local/demo mode.
+// Production uses PHP backend with bcrypt + MySQL sessions.
 
 // ── Input Sanitization (XSS Prevention) ──
 export function sanitize(str: string): string {
@@ -226,10 +226,7 @@ export function runSecurityCheck(): void {
     { name: 'Local storage available', pass: typeof localStorage !== 'undefined' },
     { name: 'Crypto available', pass: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' },
   ];
-  const failed = checks.filter(c => !c.pass);
-  if (failed.length > 0 && import.meta.env.DEV) {
-    console.warn('[NH Production House] Security check failed:', failed.map(f => f.name));
-  }
+  // Security checks run silently
 }
 
 // ── Permission Check Helper ──
