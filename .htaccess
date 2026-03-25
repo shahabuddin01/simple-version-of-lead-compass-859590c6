@@ -9,6 +9,9 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
 RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
 
+# Backend PHP routing
+RewriteRule ^backend/ - [L]
+
 # SPA Routing
 RewriteBase /
 RewriteRule ^index\.html$ - [L]
@@ -18,36 +21,30 @@ RewriteRule . /index.html [L]
 
 # Security Headers
 <IfModule mod_headers.c>
-    Header always set X-Frame-Options "DENY"
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set Referrer-Policy "no-referrer"
-    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-    Header always set X-XSS-Protection "1; mode=block"
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.millionverifier.com https://bulkapi.millionverifier.com https://api.bdbulksms.net; font-src 'self' data:;"
+  Header always set X-Frame-Options "DENY"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
 # Cache static assets (1 year)
 <FilesMatch "\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf)$">
-    Header set Cache-Control "max-age=31536000, public, immutable"
+  Header set Cache-Control "max-age=31536000, public, immutable"
 </FilesMatch>
 
 # No cache for HTML
 <FilesMatch "\.html$">
-    Header set Cache-Control "no-cache, no-store, must-revalidate"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
 </FilesMatch>
 
 # Block sensitive files
-<FilesMatch "\.(env|log|sql|sh|config|bak|zip|rar)$">
-    Order allow,deny
-    Deny from all
+<FilesMatch "\.(env|log|sql|sh|bak)$">
+  Order allow,deny
+  Deny from all
 </FilesMatch>
 
 # Gzip compression
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/css
-    AddOutputFilterByType DEFLATE application/javascript application/json
-    AddOutputFilterByType DEFLATE image/svg+xml
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
 </IfModule>

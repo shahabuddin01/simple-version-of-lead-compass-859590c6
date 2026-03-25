@@ -1,5 +1,5 @@
 -- NH Production House CRM — Complete MySQL Schema
--- Run this in phpMyAdmin after creating your database
+-- Import via phpMyAdmin after creating your database
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";

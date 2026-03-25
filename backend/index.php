@@ -18,7 +18,6 @@ $segments = explode('/', $path);
 
 $resource = $segments[0] ?? '';
 $action = $segments[1] ?? null;
-$subAction = $segments[2] ?? null;
 
 switch ($resource) {
     case 'auth':
