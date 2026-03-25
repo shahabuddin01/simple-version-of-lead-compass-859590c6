@@ -54,6 +54,7 @@ const Index = () => {
   const [bulkVerifying, setBulkVerifying] = useState(false);
   const [bulkDeleteMode, setBulkDeleteMode] = useState<"selected" | "page" | "pages" | "all" | null>(null);
   const [deleteProgress, setDeleteProgress] = useState<{ running: boolean; current: number; total: number; step: string; done: boolean; deletedCount: number } | null>(null);
+  const [clientCommModalOpen, setClientCommModalOpen] = useState(false);
 
   useEffect(() => { setSelectedIds(new Set()); }, [filter, view]);
   useEffect(() => { cleanupExpiredCache(); }, []);
