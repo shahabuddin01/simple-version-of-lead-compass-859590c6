@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback, memo } from "react";
 import { Lead } from "@/types/lead";
 import { getStatusStyle, getInitials, getAvatarColor, getIndustryColor } from "@/lib/leadUtils";
 import { getQualityDisplay, getESP } from "@/lib/emailVerifier";
-import { Edit2, Trash2, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit2, Trash2, Clock, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
