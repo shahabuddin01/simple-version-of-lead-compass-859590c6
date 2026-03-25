@@ -356,7 +356,6 @@ export function SalaryReport() {
               <ul className="space-y-0.5 text-xs text-muted-foreground">
                 <li>• Leads Added: {detail.leadsAdded}</li>
                 <li>• Leads Edited: {detail.leadsEdited}</li>
-                <li>• SMS Sent: {detail.smsSent}</li>
               </ul>
               <div className="my-3 h-px bg-border" />
               <p className="text-lg font-bold">Total Salary: {fmtCurrency(detail.totalSalary)}</p>
