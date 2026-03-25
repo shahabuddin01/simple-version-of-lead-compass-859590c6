@@ -1,6 +1,6 @@
 /**
- * Social link utilities — opens social media URLs reliably
- * using anchor click method to avoid about:blank issues.
+ * Social link utilities — opens social media URLs
+ * with referrer stripping to prevent platform blocking.
  */
 
 export function cleanSocialUrl(url: string, platform?: string): string {
@@ -46,7 +46,8 @@ export function openSocialLink(url: string | null | undefined, platform?: string
   const link = document.createElement("a");
   link.href = cleanUrl;
   link.target = "_blank";
-  link.rel = "noopener noreferrer";
+  link.rel = "noreferrer noopener";
+  link.referrerPolicy = "no-referrer";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
