@@ -434,6 +434,7 @@ const Index = () => {
                     onDeletePage={isAdmin ? () => setBulkDeleteMode("page") : undefined}
                     onDeleteByPages={isAdmin ? () => setBulkDeleteMode("pages") : undefined}
                     onDeleteAll={isAdmin ? () => setBulkDeleteMode("all") : undefined}
+                    onAddToClientComm={() => setClientCommModalOpen(true)}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
                   />
