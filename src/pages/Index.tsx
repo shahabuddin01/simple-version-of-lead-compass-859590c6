@@ -25,6 +25,7 @@ import { APIDashboard } from "@/components/api-dashboard/APIDashboard";
 import { APISettings } from "@/components/email-verifier/APISettings";
 import { BackupSettings } from "@/components/settings/BackupSettings";
 import { SecurityCenter } from "@/components/security/SecurityCenter";
+import { ClientCommunicationPage } from "@/components/client-communications/ClientCommunicationPage";
 
 import { Lead, PipelineStatus, EmailVerification } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
