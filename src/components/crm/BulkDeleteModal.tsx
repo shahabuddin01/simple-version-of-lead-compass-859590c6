@@ -29,6 +29,9 @@ export function BulkDeleteModal({
   const [confirmText, setConfirmText] = useState("");
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
   const [selectAllPages, setSelectAllPages] = useState(false);
+  const [rangeFrom, setRangeFrom] = useState(1);
+  const [rangeTo, setRangeTo] = useState(1);
+  const [rangeError, setRangeError] = useState("");
 
   const requiredText = mode === "all" ? "DELETE ALL" : "DELETE";
 
