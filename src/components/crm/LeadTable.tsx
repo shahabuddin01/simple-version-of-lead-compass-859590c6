@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback, memo } from "react";
 import { Lead } from "@/types/lead";
 import { getStatusStyle, getInitials, getAvatarColor, getIndustryColor } from "@/lib/leadUtils";
 import { getQualityDisplay, getESP } from "@/lib/emailVerifier";
-import { openSocialLink, copySocialLink } from "@/lib/socialLinks";
+import { SocialLink } from "@/components/crm/SocialLink";
 import { Edit2, Trash2, Clock, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -113,40 +113,25 @@ const LeadRow = memo(function LeadRow({ lead, editable, isSelected, showCheckbox
         ) : <span className="text-xs text-muted-foreground">—</span>}
       </td>
       <td className="px-4 py-3 text-center">
-        {lead.linkedin ? (
-          <Tooltip><TooltipTrigger asChild>
-            <div onClick={e => { e.stopPropagation(); openSocialLink(lead.linkedin, 'linkedin'); }}
-              onContextMenu={e => { e.preventDefault(); e.stopPropagation(); copySocialLink(lead.linkedin, 'linkedin'); }}
-              title="Open LinkedIn (right-click to copy URL)"
-              className="w-7 h-7 rounded flex items-center justify-center bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors">
-              <span className="text-white text-xs font-bold">in</span>
-            </div>
-          </TooltipTrigger><TooltipContent className="text-xs">Open LinkedIn profile</TooltipContent></Tooltip>
-        ) : <span className="text-xs text-muted-foreground">—</span>}
+        <SocialLink url={lead.linkedin} platform="LinkedIn">
+          <div className="w-7 h-7 rounded flex items-center justify-center bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors">
+            <span className="text-white text-xs font-bold">in</span>
+          </div>
+        </SocialLink>
       </td>
       <td className="px-4 py-3 text-center">
-        {lead.facebook ? (
-          <Tooltip><TooltipTrigger asChild>
-            <div onClick={e => { e.stopPropagation(); openSocialLink(lead.facebook, 'facebook'); }}
-              onContextMenu={e => { e.preventDefault(); e.stopPropagation(); copySocialLink(lead.facebook, 'facebook'); }}
-              title="Open Facebook (right-click to copy URL)"
-              className="w-7 h-7 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1877F2' }}>
-              <span className="text-white text-xs font-bold">f</span>
-            </div>
-          </TooltipTrigger><TooltipContent className="text-xs">Open Facebook profile</TooltipContent></Tooltip>
-        ) : <span className="text-xs text-muted-foreground">—</span>}
+        <SocialLink url={lead.facebook} platform="Facebook">
+          <div className="w-7 h-7 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1877F2' }}>
+            <span className="text-white text-xs font-bold">f</span>
+          </div>
+        </SocialLink>
       </td>
       <td className="px-4 py-3 text-center">
-        {lead.instagram ? (
-          <Tooltip><TooltipTrigger asChild>
-            <div onClick={e => { e.stopPropagation(); openSocialLink(lead.instagram, 'instagram'); }}
-              onContextMenu={e => { e.preventDefault(); e.stopPropagation(); copySocialLink(lead.instagram, 'instagram'); }}
-              title="Open Instagram (right-click to copy URL)"
-              className="w-7 h-7 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}>
-              <Instagram className="w-4 h-4 text-white" />
-            </div>
-          </TooltipTrigger><TooltipContent className="text-xs">Open Instagram profile</TooltipContent></Tooltip>
-        ) : <span className="text-xs text-muted-foreground">—</span>}
+        <SocialLink url={lead.instagram} platform="Instagram">
+          <div className="w-7 h-7 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}>
+            <Instagram className="w-4 h-4 text-white" />
+          </div>
+        </SocialLink>
       </td>
       {onToggleActive && (
         <td className="px-4 py-3">
