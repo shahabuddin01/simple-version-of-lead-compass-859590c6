@@ -21,6 +21,13 @@ interface BulkActionBarProps {
   onVerifyEmails: (types: ("work" | "personal1" | "personal2")[]) => void;
   verifying?: boolean;
   onClear: () => void;
+  isAdmin?: boolean;
+  onDeleteSelected?: () => void;
+  onDeletePage?: () => void;
+  onDeleteByPages?: () => void;
+  onDeleteAll?: () => void;
+  pageLeadCount?: number;
+  totalLeads?: number;
 }
 
 export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear }: BulkActionBarProps) {
