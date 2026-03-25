@@ -151,6 +151,47 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
           </button>
           {verifyDropdown}
 
+          {isAdmin && onDeleteSelected && (
+            <>
+              <button ref={deleteBtnRef}
+                onMouseDown={(e) => { e.stopPropagation(); updatePos(deleteBtnRef, setDeletePos); setDeleteOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); }}
+                className="flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20">
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              {deleteOpen && ReactDOM.createPortal(
+                <div ref={deleteDropRef} style={{ position: "fixed", top: deletePos.top, left: deletePos.left, zIndex: 99999, minWidth: 220 }}
+                  className="rounded-lg border border-border bg-popover py-1 shadow-lg">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">🗑 Delete Options</div>
+                  <button onClick={() => { setDeleteOpen(false); onDeleteSelected(); }}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-accent transition-colors cursor-pointer">
+                    Delete Selected ({count} lead{count !== 1 ? "s" : ""})
+                  </button>
+                  {onDeletePage && (
+                    <button onClick={() => { setDeleteOpen(false); onDeletePage(); }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-accent transition-colors cursor-pointer">
+                      Delete This Page ({pageLeadCount} leads)
+                    </button>
+                  )}
+                  {onDeleteByPages && (
+                    <button onClick={() => { setDeleteOpen(false); onDeleteByPages(); }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-accent transition-colors cursor-pointer">
+                      Delete By Page...
+                    </button>
+                  )}
+                  {onDeleteAll && (
+                    <>
+                      <div className="mx-3 my-1 h-px bg-border" />
+                      <button onClick={() => { setDeleteOpen(false); onDeleteAll(); }}
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer">
+                        ⚠️ Delete ALL Leads ({totalLeads?.toLocaleString()})
+                      </button>
+                    </>
+                  )}
+                </div>, document.body)}
+            </>
+          )}
+
           <button onClick={onClear} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-3.5 w-3.5" /> Clear
           </button>
