@@ -113,7 +113,35 @@ const LeadRow = memo(function LeadRow({ lead, editable, isSelected, showCheckbox
       </td>
       <td className="px-4 py-3 text-center">
         {lead.linkedin ? (
-          <a href={lead.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600 hover:bg-blue-100 transition-colors">in</a>
+          <Tooltip><TooltipTrigger asChild>
+            <a href={lead.linkedin} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+              <div className="w-7 h-7 rounded flex items-center justify-center bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors">
+                <span className="text-white text-xs font-bold">in</span>
+              </div>
+            </a>
+          </TooltipTrigger><TooltipContent className="text-xs">Open LinkedIn profile</TooltipContent></Tooltip>
+        ) : <span className="text-xs text-muted-foreground">—</span>}
+      </td>
+      <td className="px-4 py-3 text-center">
+        {lead.facebook ? (
+          <Tooltip><TooltipTrigger asChild>
+            <a href={lead.facebook} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+              <div className="w-7 h-7 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: '#1877F2' }}>
+                <span className="text-white text-xs font-bold">f</span>
+              </div>
+            </a>
+          </TooltipTrigger><TooltipContent className="text-xs">Open Facebook profile</TooltipContent></Tooltip>
+        ) : <span className="text-xs text-muted-foreground">—</span>}
+      </td>
+      <td className="px-4 py-3 text-center">
+        {lead.instagram ? (
+          <Tooltip><TooltipTrigger asChild>
+            <a href={lead.instagram} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+              <div className="w-7 h-7 rounded flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)' }}>
+                <Instagram className="w-4 h-4 text-white" />
+              </div>
+            </a>
+          </TooltipTrigger><TooltipContent className="text-xs">Open Instagram profile</TooltipContent></Tooltip>
         ) : <span className="text-xs text-muted-foreground">—</span>}
       </td>
       {onToggleActive && (
