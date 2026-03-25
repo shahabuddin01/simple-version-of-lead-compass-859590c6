@@ -25,32 +25,3 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
     </a>
   );
 }
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const cleanUrl = cleanSocialUrl(url, platform.toLowerCase());
-    if (!cleanUrl) return;
-
-    // Copy to clipboard as fallback
-    navigator.clipboard.writeText(cleanUrl).catch(() => {});
-
-    // Use real anchor click to avoid popup blockers
-    const link = document.createElement("a");
-    link.href = cleanUrl;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.referrerPolicy = "no-referrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast("Opening link... If blocked, URL is copied to clipboard");
-  };
-
-  return (
-    <div className="inline-block" onClick={e => e.stopPropagation()}>
-      <button onClick={handleClick} title={`Open ${platform} profile`}>
-        {children}
-      </button>
-    </div>
-  );
-}
