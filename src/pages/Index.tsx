@@ -293,7 +293,7 @@ const Index = () => {
 
   const isWorkforceView = view.startsWith("workforce-");
   const isEVView = view.startsWith("ev-");
-  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center";
+  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center" && view !== "client-communications";
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
