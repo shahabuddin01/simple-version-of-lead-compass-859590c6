@@ -280,6 +280,7 @@ const Index = () => {
   const viewTitles: Record<string, string> = {
     dashboard: "Dashboard", users: "User Management",
     all: "All Leads", active: "Active Leads", inactive: "Inactive Leads",
+    "client-communications": "Client Communication",
     "workforce-live": "Live Activity", "workforce-timelogs": "Time Logs",
     "workforce-salary": "Salary Calculator", "workforce-settings": "Workforce Settings",
     "my-activity": "My Activity",
