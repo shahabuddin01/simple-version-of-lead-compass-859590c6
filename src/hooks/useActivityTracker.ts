@@ -6,7 +6,7 @@ export type ActivityAction =
   | "session_start" | "session_end"
   | "lead_viewed" | "lead_added" | "lead_edited" | "lead_deleted"
   | "status_updated" | "bulk_action" | "csv_imported" | "csv_exported" | "crm_imported"
-  | "sms_sent" | "search_performed" | "filter_applied" | "page_navigated";
+  | "search_performed" | "filter_applied" | "page_navigated";
 
 export interface ActivityLog {
   userId: string;
