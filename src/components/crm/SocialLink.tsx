@@ -16,9 +16,6 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
-    // Force open in top-level context to escape iframe
-    e.preventDefault();
-    window.open(cleanUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
