@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import { PipelineStatus } from "@/types/lead";
-import { ChevronDown, CheckSquare, X, MailCheck } from "lucide-react";
+import { ChevronDown, CheckSquare, X, MailCheck, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "motion/react";
 
@@ -21,18 +21,29 @@ interface BulkActionBarProps {
   onVerifyEmails: (types: ("work" | "personal1" | "personal2")[]) => void;
   verifying?: boolean;
   onClear: () => void;
+  isAdmin?: boolean;
+  onDeleteSelected?: () => void;
+  onDeletePage?: () => void;
+  onDeleteByPages?: () => void;
+  onDeleteAll?: () => void;
+  pageLeadCount?: number;
+  totalLeads?: number;
 }
 
-export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear }: BulkActionBarProps) {
+export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, pageLeadCount, totalLeads }: BulkActionBarProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [verifyTypes, setVerifyTypes] = useState<Set<"work" | "personal1" | "personal2">>(new Set(["work"]));
   const statusBtnRef = useRef<HTMLButtonElement>(null);
   const verifyBtnRef = useRef<HTMLButtonElement>(null);
+  const deleteBtnRef = useRef<HTMLButtonElement>(null);
   const statusDropRef = useRef<HTMLDivElement>(null);
   const verifyDropRef = useRef<HTMLDivElement>(null);
+  const deleteDropRef = useRef<HTMLDivElement>(null);
   const [statusPos, setStatusPos] = useState({ top: 0, left: 0 });
   const [verifyPos, setVerifyPos] = useState({ top: 0, left: 0 });
+  const [deletePos, setDeletePos] = useState({ top: 0, left: 0 });
 
   const updatePos = useCallback((ref: React.RefObject<HTMLButtonElement | null>, setter: (p: { top: number; left: number }) => void) => {
     if (!ref.current) return;
@@ -43,26 +54,28 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
   }, []);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen) return;
     const onScroll = () => {
       if (statusOpen) updatePos(statusBtnRef, setStatusPos);
       if (verifyOpen) updatePos(verifyBtnRef, setVerifyPos);
+      if (deleteOpen) updatePos(deleteBtnRef, setDeletePos);
     };
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onScroll);
     return () => { window.removeEventListener("scroll", onScroll, true); window.removeEventListener("resize", onScroll); };
-  }, [statusOpen, verifyOpen, updatePos]);
+  }, [statusOpen, verifyOpen, deleteOpen, updatePos]);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
       if (statusOpen && !statusBtnRef.current?.contains(t) && !statusDropRef.current?.contains(t)) setStatusOpen(false);
       if (verifyOpen && !verifyBtnRef.current?.contains(t) && !verifyDropRef.current?.contains(t)) setVerifyOpen(false);
+      if (deleteOpen && !deleteBtnRef.current?.contains(t) && !deleteDropRef.current?.contains(t)) setDeleteOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [statusOpen, verifyOpen]);
+  }, [statusOpen, verifyOpen, deleteOpen]);
 
   const toggleVerifyType = (type: "work" | "personal1" | "personal2") => {
     setVerifyTypes(prev => {
@@ -137,6 +150,47 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
             Verify Emails <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
           {verifyDropdown}
+
+          {isAdmin && onDeleteSelected && (
+            <>
+              <button ref={deleteBtnRef}
+                onMouseDown={(e) => { e.stopPropagation(); updatePos(deleteBtnRef, setDeletePos); setDeleteOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); }}
+                className="flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20">
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              {deleteOpen && ReactDOM.createPortal(
+                <div ref={deleteDropRef} style={{ position: "fixed", top: deletePos.top, left: deletePos.left, zIndex: 99999, minWidth: 220 }}
+                  className="rounded-lg border border-border bg-popover py-1 shadow-lg">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">🗑 Delete Options</div>
+                  <button onClick={() => { setDeleteOpen(false); onDeleteSelected(); }}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-accent transition-colors cursor-pointer">
+                    Delete Selected ({count} lead{count !== 1 ? "s" : ""})
+                  </button>
+                  {onDeletePage && (
+                    <button onClick={() => { setDeleteOpen(false); onDeletePage(); }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-accent transition-colors cursor-pointer">
+                      Delete This Page ({pageLeadCount} leads)
+                    </button>
+                  )}
+                  {onDeleteByPages && (
+                    <button onClick={() => { setDeleteOpen(false); onDeleteByPages(); }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-accent transition-colors cursor-pointer">
+                      Delete By Page...
+                    </button>
+                  )}
+                  {onDeleteAll && (
+                    <>
+                      <div className="mx-3 my-1 h-px bg-border" />
+                      <button onClick={() => { setDeleteOpen(false); onDeleteAll(); }}
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer">
+                        ⚠️ Delete ALL Leads ({totalLeads?.toLocaleString()})
+                      </button>
+                    </>
+                  )}
+                </div>, document.body)}
+            </>
+          )}
 
           <button onClick={onClear} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-3.5 w-3.5" /> Clear

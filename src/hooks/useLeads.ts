@@ -264,11 +264,24 @@ export const useLeads = () => {
     return dirtyCount;
   }, []);
 
+  const bulkDeleteLeads = useCallback((ids: Set<string>) => {
+    setLeads((prev) => prev.filter((l) => !ids.has(l.id)));
+  }, []);
+
+  const deleteAllLeads = useCallback(() => {
+    setLeads([]);
+  }, []);
+
+  const deletePageLeads = useCallback((pageLeadIds: string[]) => {
+    const idSet = new Set(pageLeadIds);
+    setLeads((prev) => prev.filter((l) => !idSet.has(l.id)));
+  }, []);
+
   return {
     leads, filteredLeads, view, setView, filter, setFilter,
     sortBy, setSortBy, stats, industries, companies,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
-    bulkUpdateStatus, bulkSetActive,
+    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads, deletePageLeads,
     allTags, allFolders, allListSources,
     addIndustry, addCompany, deleteByIndustry, deleteByCompany,
     renameIndustry, renameCompany, mergeCompany, cleanAllPhoneData,
