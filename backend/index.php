@@ -48,7 +48,11 @@ switch ($resource) {
         break;
 
     case 'backup':
-        require __DIR__ . '/api/backup/index.php';
+        if ($action === 'restore') {
+            require __DIR__ . '/api/backup/restore.php';
+        } else {
+            require __DIR__ . '/api/backup/index.php';
+        }
         break;
 
     case 'verify':

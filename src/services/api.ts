@@ -201,6 +201,23 @@ export async function apiCreateBackup() {
   return apiRequest('/backup', { method: 'POST' });
 }
 
+export async function apiRestoreBackup(
+  backupData: Record<string, any>,
+  mode: 'overwrite' | 'merge' = 'overwrite',
+  restoreLeads = true,
+  restoreCache = true
+) {
+  return apiRequest('/backup/restore', {
+    method: 'POST',
+    body: JSON.stringify({
+      backup_data: backupData,
+      mode,
+      restore_leads: restoreLeads,
+      restore_cache: restoreCache,
+    }),
+  });
+}
+
 // ===================== EMAIL VERIFICATION =====================
 
 export async function apiVerifyEmail(email: string, apiKey?: string) {
