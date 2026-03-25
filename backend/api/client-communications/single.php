@@ -5,12 +5,27 @@ require_once __DIR__ . '/../../middleware/auth.php';
 
 header('Content-Type: application/json');
 
+$user = authenticate();
+$db = (new Database())->connect();
 $method = $_SERVER['REQUEST_METHOD'];
 $id = (int)($_REQUEST['client_id'] ?? 0);
 
 if (!$id) {
   http_response_code(400);
   echo json_encode(['error' => 'Missing client ID']);
+  exit;
+}
+
+if ($method === 'GET') {
+  $stmt = $db->prepare("SELECT * FROM client_communications WHERE id = ?");
+  $stmt->execute([$id]);
+  $client = $stmt->fetch(PDO::FETCH_ASSOC);
+  if (!$client) {
+    http_response_code(404);
+    echo json_encode(['error' => 'Client not found']);
+    exit;
+  }
+  echo json_encode($client);
   exit;
 }
 
@@ -31,15 +46,15 @@ if ($method === 'PUT') {
     exit;
   }
   $params[] = $id;
-  db()->prepare("UPDATE client_communications SET " . implode(', ', $fields) . " WHERE id = ?")->execute($params);
-  $stmt = db()->prepare("SELECT * FROM client_communications WHERE id = ?");
+  $db->prepare("UPDATE client_communications SET " . implode(', ', $fields) . " WHERE id = ?")->execute($params);
+  $stmt = $db->prepare("SELECT * FROM client_communications WHERE id = ?");
   $stmt->execute([$id]);
   echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
   exit;
 }
 
 if ($method === 'DELETE') {
-  db()->prepare("DELETE FROM client_communications WHERE id = ?")->execute([$id]);
+  $db->prepare("DELETE FROM client_communications WHERE id = ?")->execute([$id]);
   echo json_encode(['success' => true]);
   exit;
 }

@@ -1,10 +1,8 @@
 /**
  * NH Production House CRM — PHP Backend API Service
  *
- * This service layer replaces all Supabase calls with PHP REST API calls.
- * The frontend calls this service, which talks to the PHP backend on cPanel.
- *
- * In development/preview mode (no PHP backend), the app continues to use
+ * Handles all API communication with the PHP/MySQL backend on cPanel.
+ * In development/preview mode (no PHP backend), the app uses
  * localStorage via the existing hooks. This file is used when VITE_API_URL is set.
  */
 

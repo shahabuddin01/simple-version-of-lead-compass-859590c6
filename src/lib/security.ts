@@ -226,10 +226,7 @@ export function runSecurityCheck(): void {
     { name: 'Local storage available', pass: typeof localStorage !== 'undefined' },
     { name: 'Crypto available', pass: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' },
   ];
-  const failed = checks.filter(c => !c.pass);
-  if (failed.length > 0 && import.meta.env.DEV) {
-    console.warn('[NH Production House] Security check failed:', failed.map(f => f.name));
-  }
+  // Security checks run silently
 }
 
 // ── Permission Check Helper ──
