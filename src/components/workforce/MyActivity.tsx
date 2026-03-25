@@ -35,12 +35,11 @@ export function MyActivity() {
 
   const leadsAdded = todayLogs.filter(l => l.action === "lead_added").length;
   const leadsEdited = todayLogs.filter(l => l.action === "lead_edited").length;
-  const smsSent = todayLogs.filter(l => l.action === "sms_sent").length;
 
   const todayScore = calcProductivityScore(
     todayActiveMs / 60000, todayTotalMs / 60000,
     todayActions, todayClicks,
-    leadsAdded + leadsEdited, smsSent
+    leadsAdded + leadsEdited
   );
   const todayBadge = getScoreBadge(todayScore);
 
