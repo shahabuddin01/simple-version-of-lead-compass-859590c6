@@ -14,6 +14,7 @@ import { LeadFilters } from "@/components/crm/LeadFilters";
 import { ExportDropdown } from "@/components/crm/ExportDropdown";
 import { BulkActionBar } from "@/components/crm/BulkActionBar";
 import { BulkDeleteModal } from "@/components/crm/BulkDeleteModal";
+import { AddToClientCommModal } from "@/components/crm/AddToClientCommModal";
 import { UserManagement } from "@/pages/UserManagement";
 import { LiveActivity } from "@/components/workforce/LiveActivity";
 import { TimeLogs } from "@/components/workforce/TimeLogs";
