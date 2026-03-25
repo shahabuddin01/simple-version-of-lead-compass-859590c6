@@ -23,7 +23,6 @@ import { VerificationReport } from "@/components/email-verifier/VerificationRepo
 import { APIDashboard } from "@/components/api-dashboard/APIDashboard";
 import { APISettings } from "@/components/email-verifier/APISettings";
 import { BackupSettings } from "@/components/settings/BackupSettings";
-import { SMTPSettings } from "@/components/settings/SMTPSettings";
 import { SecurityCenter } from "@/components/security/SecurityCenter";
 
 import { Lead, PipelineStatus, EmailVerification } from "@/types/lead";
