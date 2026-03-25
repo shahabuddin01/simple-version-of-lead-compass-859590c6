@@ -388,11 +388,6 @@ export function CRMSidebar({
           <div className="relative">
             {navItem("Inactive Leads", <UserX className="h-4 w-4" />, "inactive", stats.inactive)}
           </div>
-          {showSMSCenter && (
-            <div className="relative">
-              {navItem("SMS Center", <Smartphone className="h-4 w-4" />, "sms", 0)}
-            </div>
-          )}
 
           {showMyActivity && (
             <div className="relative">
