@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import { PipelineStatus } from "@/types/lead";
-import { ChevronDown, CheckSquare, X, MailCheck, Trash2 } from "lucide-react";
+import { ChevronDown, CheckSquare, X, MailCheck, Trash2, MessageSquare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "motion/react";
 
@@ -26,11 +26,12 @@ interface BulkActionBarProps {
   onDeletePage?: () => void;
   onDeleteByPages?: () => void;
   onDeleteAll?: () => void;
+  onAddToClientComm?: () => void;
   pageLeadCount?: number;
   totalLeads?: number;
 }
 
-export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, pageLeadCount, totalLeads }: BulkActionBarProps) {
+export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, onAddToClientComm, pageLeadCount, totalLeads }: BulkActionBarProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -150,6 +151,14 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
             Verify Emails <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
           {verifyDropdown}
+
+          {onAddToClientComm && (
+            <button onClick={onAddToClientComm}
+              className="flex items-center gap-1.5 rounded-md border border-purple-300 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-700 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-900/40">
+              <MessageSquare className="h-3.5 w-3.5" />
+              + Client Comm
+            </button>
+          )}
 
           {isAdmin && onDeleteSelected && (
             <>

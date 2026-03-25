@@ -14,6 +14,7 @@ import { LeadFilters } from "@/components/crm/LeadFilters";
 import { ExportDropdown } from "@/components/crm/ExportDropdown";
 import { BulkActionBar } from "@/components/crm/BulkActionBar";
 import { BulkDeleteModal } from "@/components/crm/BulkDeleteModal";
+import { AddToClientCommModal } from "@/components/crm/AddToClientCommModal";
 import { UserManagement } from "@/pages/UserManagement";
 import { LiveActivity } from "@/components/workforce/LiveActivity";
 import { TimeLogs } from "@/components/workforce/TimeLogs";
@@ -53,6 +54,7 @@ const Index = () => {
   const [bulkVerifying, setBulkVerifying] = useState(false);
   const [bulkDeleteMode, setBulkDeleteMode] = useState<"selected" | "page" | "pages" | "all" | null>(null);
   const [deleteProgress, setDeleteProgress] = useState<{ running: boolean; current: number; total: number; step: string; done: boolean; deletedCount: number } | null>(null);
+  const [clientCommModalOpen, setClientCommModalOpen] = useState(false);
 
   useEffect(() => { setSelectedIds(new Set()); }, [filter, view]);
   useEffect(() => { cleanupExpiredCache(); }, []);
@@ -432,6 +434,7 @@ const Index = () => {
                     onDeletePage={isAdmin ? () => setBulkDeleteMode("page") : undefined}
                     onDeleteByPages={isAdmin ? () => setBulkDeleteMode("pages") : undefined}
                     onDeleteAll={isAdmin ? () => setBulkDeleteMode("all") : undefined}
+                    onAddToClientComm={() => setClientCommModalOpen(true)}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
                   />
@@ -483,6 +486,13 @@ const Index = () => {
         onConfirmDelete={handleBulkDelete}
         progress={deleteProgress}
         onGoToLeads={() => { setView("all"); setBulkDeleteMode(null); setDeleteProgress(null); }}
+      />
+
+      <AddToClientCommModal
+        open={clientCommModalOpen}
+        onClose={() => setClientCommModalOpen(false)}
+        selectedLeads={leads.filter(l => selectedIds.has(l.id))}
+        onDone={() => setSelectedIds(new Set())}
       />
     </div>
   );
