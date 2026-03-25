@@ -13,7 +13,6 @@ import { DeleteDialog } from "@/components/crm/DeleteDialog";
 import { LeadFilters } from "@/components/crm/LeadFilters";
 import { ExportDropdown } from "@/components/crm/ExportDropdown";
 import { BulkActionBar } from "@/components/crm/BulkActionBar";
-import { SMSCenter } from "@/components/crm/SMSCenter";
 import { UserManagement } from "@/pages/UserManagement";
 import { LiveActivity } from "@/components/workforce/LiveActivity";
 import { TimeLogs } from "@/components/workforce/TimeLogs";
