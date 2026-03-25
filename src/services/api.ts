@@ -162,6 +162,18 @@ export async function apiBulkLeadAction(
   });
 }
 
+// ===================== BULK DELETE =====================
+
+export async function apiBulkDeleteLeads(
+  type: 'selected' | 'page' | 'pages' | 'all',
+  data?: { ids?: number[]; page?: number; pages?: number[]; per_page?: number }
+) {
+  return apiRequest('/leads/delete-bulk', {
+    method: 'POST',
+    body: JSON.stringify({ type, ...data }),
+  });
+}
+
 // ===================== USERS =====================
 
 export async function apiGetUsers() {

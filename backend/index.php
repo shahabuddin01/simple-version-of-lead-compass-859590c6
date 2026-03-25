@@ -30,7 +30,11 @@ switch ($resource) {
         break;
 
     case 'leads':
-        if ($action && is_numeric($action)) {
+        if ($action === 'delete-bulk') {
+            require __DIR__ . '/api/leads/delete-bulk.php';
+        } elseif ($action === 'bulk') {
+            require __DIR__ . '/api/leads/bulk.php';
+        } elseif ($action && is_numeric($action)) {
             $_REQUEST['lead_id'] = (int) $action;
             require __DIR__ . '/api/leads/single.php';
         } else {
