@@ -47,7 +47,7 @@ export interface Lead {
   personalEmail2Verification?: EmailVerification;
 }
 
-export type ViewMode = "dashboard" | "all" | "active" | "inactive" | "users" | "workforce-live" | "workforce-timelogs" | "workforce-salary" | "workforce-settings" | "my-activity" | "ev-report" | "ev-settings" | "api-integrations" | "backups" | "security-center";
+export type ViewMode = "dashboard" | "all" | "active" | "inactive" | "users" | "workforce-live" | "workforce-timelogs" | "workforce-salary" | "workforce-settings" | "my-activity" | "ev-report" | "ev-settings" | "api-integrations" | "backups" | "security-center" | "client-communications";
 
 export interface FilterState {
   industry: string | null;

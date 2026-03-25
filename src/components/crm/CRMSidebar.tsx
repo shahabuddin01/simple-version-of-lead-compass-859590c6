@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import logoSrc from "@/assets/logo.png";
-import { ChevronRight, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck } from "lucide-react";
+import { ChevronRight, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare } from "lucide-react";
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { motion, AnimatePresence } from "motion/react";
@@ -387,6 +387,9 @@ export function CRMSidebar({
           </div>
           <div className="relative">
             {navItem("Inactive Leads", <UserX className="h-4 w-4" />, "inactive", stats.inactive)}
+          </div>
+          <div className="relative">
+            {navItem("Client Communication", <MessageSquare className="h-4 w-4" />, "client-communications", 0)}
           </div>
 
           {showMyActivity && (

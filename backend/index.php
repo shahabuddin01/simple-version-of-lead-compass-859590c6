@@ -85,14 +85,12 @@ switch ($resource) {
         }
         break;
 
-    case 'sms':
-        $smsAction = $action ?? 'queue';
-        $filePath = __DIR__ . "/api/sms/{$smsAction}.php";
-        if (file_exists($filePath)) {
-            require $filePath;
+    case 'client-communications':
+        if ($action && is_numeric($action)) {
+            $_REQUEST['client_id'] = (int) $action;
+            require __DIR__ . '/api/client-communications/single.php';
         } else {
-            http_response_code(404);
-            echo json_encode(['error' => "SMS endpoint '$smsAction' not found"]);
+            require __DIR__ . '/api/client-communications/index.php';
         }
         break;
 

@@ -25,6 +25,7 @@ import { APIDashboard } from "@/components/api-dashboard/APIDashboard";
 import { APISettings } from "@/components/email-verifier/APISettings";
 import { BackupSettings } from "@/components/settings/BackupSettings";
 import { SecurityCenter } from "@/components/security/SecurityCenter";
+import { ClientCommunicationPage } from "@/components/client-communications/ClientCommunicationPage";
 
 import { Lead, PipelineStatus, EmailVerification } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
@@ -279,6 +280,7 @@ const Index = () => {
   const viewTitles: Record<string, string> = {
     dashboard: "Dashboard", users: "User Management",
     all: "All Leads", active: "Active Leads", inactive: "Inactive Leads",
+    "client-communications": "Client Communication",
     "workforce-live": "Live Activity", "workforce-timelogs": "Time Logs",
     "workforce-salary": "Salary Calculator", "workforce-settings": "Workforce Settings",
     "my-activity": "My Activity",
@@ -291,7 +293,7 @@ const Index = () => {
 
   const isWorkforceView = view.startsWith("workforce-");
   const isEVView = view.startsWith("ev-");
-  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center";
+  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center" && view !== "client-communications";
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -395,6 +397,8 @@ const Index = () => {
             <BackupSettings leads={leads} />
           ) : view === "security-center" && isAdmin ? (
             <SecurityCenter leads={leads} />
+          ) : view === "client-communications" ? (
+            <ClientCommunicationPage leads={leads} />
           ) : isEVView && isAdmin ? (
             view === "ev-report" ? <VerificationReport /> : <APISettings />
           ) : view === "dashboard" ? (

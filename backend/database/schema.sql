@@ -167,6 +167,27 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Client Communications
+CREATE TABLE IF NOT EXISTS client_communications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  designation VARCHAR(255),
+  company VARCHAR(255),
+  linkedin VARCHAR(500),
+  facebook VARCHAR(500),
+  instagram VARCHAR(500),
+  lead_status ENUM('HOT','WARM','COLD','') DEFAULT '',
+  lead_collected_date DATE NULL,
+  mail_status ENUM('not_send','mail_sent','follow_up_sent','reply_received','no') DEFAULT 'not_send',
+  mail_sent_date DATE NULL,
+  comments TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_lead_status (lead_status),
+  INDEX idx_mail_status (mail_status),
+  INDEX idx_company (company)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- =========================================
 -- DEFAULT ADMIN USER
 -- Password: Admin@1234 (bcrypt hash)
