@@ -87,7 +87,6 @@ function loadRolePermissions(): Record<UserRole, Permissions> {
 const EMPTY_PERMISSIONS: Permissions = {
   canViewLeads: false, canAddLead: false, canEditAnyLead: false, canEditOwnLead: false,
   canDeleteLead: false, canImport: false, canExport: false,
-  canAccessSMS: false, canSendSMS: false, canConfigureSMSGateway: false,
   canAddIndustry: false, canDeleteIndustry: false, canRenameIndustry: false,
   canMergeCompany: false, canAddCompany: false, canDeleteCompany: false, canRenameCompany: false,
   canBulkStatusUpdate: false, canToggleActive: false, canViewDashboard: false,
