@@ -487,6 +487,13 @@ const Index = () => {
         progress={deleteProgress}
         onGoToLeads={() => { setView("all"); setBulkDeleteMode(null); setDeleteProgress(null); }}
       />
+
+      <AddToClientCommModal
+        open={clientCommModalOpen}
+        onClose={() => setClientCommModalOpen(false)}
+        selectedLeads={leads.filter(l => selectedIds.has(l.id))}
+        onDone={() => setSelectedIds(new Set())}
+      />
     </div>
   );
 };
