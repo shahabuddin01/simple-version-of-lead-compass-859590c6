@@ -133,7 +133,7 @@ export function SalaryReport() {
         score, badge: getScoreBadge(score),
         basePay: Math.round(totalBasePay), bonus: Math.round(bonus),
         totalSalary: Math.round(totalBasePay + bonus),
-        leadsAdded, leadsEdited, smsSent,
+        leadsAdded, leadsEdited,
         billableDays, weeklyOffCount, holidayCount,
       };
       });
