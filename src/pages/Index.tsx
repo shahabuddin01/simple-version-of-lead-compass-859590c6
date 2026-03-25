@@ -55,7 +55,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!currentUser) return;
-    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups", "smtp-settings", "security-center"];
+    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups", "security-center"];
     if (adminOnlyViews.includes(view) && currentUser.role !== "Admin") {
       toast.error("You don't have permission to access this section.");
       setView("all");
