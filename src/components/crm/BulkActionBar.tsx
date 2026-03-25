@@ -54,26 +54,28 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
   }, []);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen) return;
     const onScroll = () => {
       if (statusOpen) updatePos(statusBtnRef, setStatusPos);
       if (verifyOpen) updatePos(verifyBtnRef, setVerifyPos);
+      if (deleteOpen) updatePos(deleteBtnRef, setDeletePos);
     };
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onScroll);
     return () => { window.removeEventListener("scroll", onScroll, true); window.removeEventListener("resize", onScroll); };
-  }, [statusOpen, verifyOpen, updatePos]);
+  }, [statusOpen, verifyOpen, deleteOpen, updatePos]);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
       if (statusOpen && !statusBtnRef.current?.contains(t) && !statusDropRef.current?.contains(t)) setStatusOpen(false);
       if (verifyOpen && !verifyBtnRef.current?.contains(t) && !verifyDropRef.current?.contains(t)) setVerifyOpen(false);
+      if (deleteOpen && !deleteBtnRef.current?.contains(t) && !deleteDropRef.current?.contains(t)) setDeleteOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [statusOpen, verifyOpen]);
+  }, [statusOpen, verifyOpen, deleteOpen]);
 
   const toggleVerifyType = (type: "work" | "personal1" | "personal2") => {
     setVerifyTypes(prev => {
