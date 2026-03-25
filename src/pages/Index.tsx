@@ -423,6 +423,13 @@ const Index = () => {
                     onVerifyEmails={handleBulkVerifyEmails}
                     verifying={bulkVerifying}
                     onClear={() => setSelectedIds(new Set())}
+                    isAdmin={isAdmin}
+                    onDeleteSelected={isAdmin ? () => setBulkDeleteMode("selected") : undefined}
+                    onDeletePage={isAdmin ? () => setBulkDeleteMode("page") : undefined}
+                    onDeleteByPages={isAdmin ? () => setBulkDeleteMode("pages") : undefined}
+                    onDeleteAll={isAdmin ? () => setBulkDeleteMode("all") : undefined}
+                    pageLeadCount={pageLeads.length}
+                    totalLeads={leads.length}
                   />
                 )}
               </AnimatePresence>
