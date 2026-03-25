@@ -465,6 +465,21 @@ const Index = () => {
           <DeleteDialog key="delete-dialog" lead={deleteTarget} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />
         )}
       </AnimatePresence>
+
+      <BulkDeleteModal
+        open={!!bulkDeleteMode}
+        onClose={() => { setBulkDeleteMode(null); setDeleteProgress(null); }}
+        mode={bulkDeleteMode || "selected"}
+        selectedCount={selectedIds.size}
+        pageLeadCount={pageLeads.length}
+        currentPage={1}
+        totalLeads={leads.length}
+        totalPages={totalPages}
+        leadsPerPage={LEADS_PER_PAGE}
+        onConfirmDelete={handleBulkDelete}
+        progress={deleteProgress}
+        onGoToLeads={() => { setView("all"); setBulkDeleteMode(null); setDeleteProgress(null); }}
+      />
     </div>
   );
 };
