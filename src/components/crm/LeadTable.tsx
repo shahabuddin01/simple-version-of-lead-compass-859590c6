@@ -230,6 +230,8 @@ export function LeadTable({ leads, onToggleActive, onEdit, onDelete, canEditLead
                 {hasPersonalEmail2 && <th className="w-[70px] px-4 py-3 text-xs font-medium text-muted-foreground">P2 ESP</th>}
                 <th className="w-[70px] px-4 py-3 text-xs font-medium text-muted-foreground">Phones</th>
                 <th className="w-[70px] px-4 py-3 text-xs font-medium text-muted-foreground">LinkedIn</th>
+                <th className="w-[70px] px-4 py-3 text-xs font-medium text-muted-foreground">Facebook</th>
+                <th className="w-[70px] px-4 py-3 text-xs font-medium text-muted-foreground">Instagram</th>
                 {onToggleActive && <th className="w-[80px] px-4 py-3 text-xs font-medium text-muted-foreground">Active</th>}
                 {showActions && <th className="w-[100px] px-4 py-3 text-xs font-medium text-muted-foreground">Actions</th>}
               </tr>
