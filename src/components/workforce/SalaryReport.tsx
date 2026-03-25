@@ -104,12 +104,11 @@ export function SalaryReport() {
       const totalClicks = userSessions.reduce((sum, s) => sum + s.totalClicks, 0);
       const leadsAdded = userLogs.filter(l => l.action === "lead_added").length;
       const leadsEdited = userLogs.filter(l => l.action === "lead_edited").length;
-      const smsSent = userLogs.filter(l => l.action === "sms_sent").length;
 
       const score = calcProductivityScore(
         totalActiveMs / 60000, totalDurationMs / 60000,
         totalActions, totalClicks,
-        leadsAdded + leadsEdited, smsSent
+        leadsAdded + leadsEdited
       );
 
       // Performance bonus from salary config
@@ -134,7 +133,7 @@ export function SalaryReport() {
         score, badge: getScoreBadge(score),
         basePay: Math.round(totalBasePay), bonus: Math.round(bonus),
         totalSalary: Math.round(totalBasePay + bonus),
-        leadsAdded, leadsEdited, smsSent,
+        leadsAdded, leadsEdited,
         billableDays, weeklyOffCount, holidayCount,
       };
       });
@@ -357,7 +356,6 @@ export function SalaryReport() {
               <ul className="space-y-0.5 text-xs text-muted-foreground">
                 <li>• Leads Added: {detail.leadsAdded}</li>
                 <li>• Leads Edited: {detail.leadsEdited}</li>
-                <li>• SMS Sent: {detail.smsSent}</li>
               </ul>
               <div className="my-3 h-px bg-border" />
               <p className="text-lg font-bold">Total Salary: {fmtCurrency(detail.totalSalary)}</p>

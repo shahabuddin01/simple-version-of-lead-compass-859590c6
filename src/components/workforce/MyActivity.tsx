@@ -35,12 +35,11 @@ export function MyActivity() {
 
   const leadsAdded = todayLogs.filter(l => l.action === "lead_added").length;
   const leadsEdited = todayLogs.filter(l => l.action === "lead_edited").length;
-  const smsSent = todayLogs.filter(l => l.action === "sms_sent").length;
 
   const todayScore = calcProductivityScore(
     todayActiveMs / 60000, todayTotalMs / 60000,
     todayActions, todayClicks,
-    leadsAdded + leadsEdited, smsSent
+    leadsAdded + leadsEdited
   );
   const todayBadge = getScoreBadge(todayScore);
 
@@ -60,14 +59,13 @@ export function MyActivity() {
   const monthClicks = monthSessions.reduce((s, sess) => s + sess.totalClicks, 0);
   const mLeadsAdded = monthLogs.filter(l => l.action === "lead_added").length;
   const mLeadsEdited = monthLogs.filter(l => l.action === "lead_edited").length;
-  const mSmsSent = monthLogs.filter(l => l.action === "sms_sent").length;
   let monthTotalMs = 0;
   monthSessions.forEach(s => { monthTotalMs += (s.endTime || Date.now()) - s.startTime; });
 
   const monthScore = calcProductivityScore(
     monthActiveMs / 60000, monthTotalMs / 60000,
     monthActions, monthClicks,
-    mLeadsAdded + mLeadsEdited, mSmsSent
+    mLeadsAdded + mLeadsEdited
   );
 
   const activeHours = monthActiveMs / 3600000;
@@ -100,7 +98,7 @@ export function MyActivity() {
       lead_viewed: "Viewed a lead", status_updated: "Updated lead status",
       bulk_action: `Bulk action on ${meta?.count || "?"} leads`,
       csv_imported: `Imported CSV (${meta?.count || "?"} leads)`,
-      csv_exported: "Exported data", sms_sent: `Sent SMS to ${meta?.count || "?"} contacts`,
+      csv_exported: "Exported data",
       search_performed: "Searched leads", filter_applied: "Applied filter",
       page_navigated: `Navigated to ${meta?.page || "a page"}`,
     };

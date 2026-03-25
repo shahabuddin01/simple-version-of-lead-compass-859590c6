@@ -6,7 +6,7 @@ export type ActivityAction =
   | "session_start" | "session_end"
   | "lead_viewed" | "lead_added" | "lead_edited" | "lead_deleted"
   | "status_updated" | "bulk_action" | "csv_imported" | "csv_exported" | "crm_imported"
-  | "sms_sent" | "search_performed" | "filter_applied" | "page_navigated";
+  | "search_performed" | "filter_applied" | "page_navigated";
 
 export interface ActivityLog {
   userId: string;
@@ -252,7 +252,7 @@ function markSessionIdle(sessionId: string, idleStart: number) {
 export function calcProductivityScore(
   activeMinutes: number, totalMinutes: number,
   actions: number, clicks: number,
-  leadsAddedEdited: number, smsSent: number
+  leadsAddedEdited: number
 ): number {
   if (totalMinutes <= 0) return 0;
   const activeHours = activeMinutes / 60;
@@ -261,11 +261,10 @@ export function calcProductivityScore(
   const clicksPerHour = activeHours > 0 ? clicks / activeHours : 0;
 
   const score =
-    activeRatio * 30 +
+    activeRatio * 35 +
     Math.min(actionsPerHour / 10, 1) * 25 +
     Math.min(clicksPerHour / 100, 1) * 15 +
-    Math.min(leadsAddedEdited / 20, 1) * 20 +
-    Math.min(smsSent / 10, 1) * 10;
+    Math.min(leadsAddedEdited / 20, 1) * 25;
 
   return Math.round(Math.min(score, 100));
 }

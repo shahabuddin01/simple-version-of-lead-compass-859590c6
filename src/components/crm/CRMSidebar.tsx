@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import logoSrc from "@/assets/logo.png";
-import { ChevronRight, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Smartphone, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, Link2 } from "lucide-react";
+import { ChevronRight, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck } from "lucide-react";
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { motion, AnimatePresence } from "motion/react";
@@ -124,14 +124,11 @@ interface CRMSidebarProps {
   onRenameCompany?: (oldName: string, newName: string) => void;
   onMergeCompany?: (sourceName: string, targetName: string) => number;
   showUserManagement?: boolean;
-  showSMSCenter?: boolean;
   showWorkforce?: boolean;
   showMyActivity?: boolean;
   showEmailVerifier?: boolean;
   showAPIIntegrations?: boolean;
-  
   showBackups?: boolean;
-  showSMTPSettings?: boolean;
   showSecurityCenter?: boolean;
 }
 
@@ -146,8 +143,8 @@ interface ContextMenuState {
 export function CRMSidebar({
   leads, view, setView, filter, setFilter, stats, industries,
   onAddIndustry, onAddCompany, onDeleteIndustry, onDeleteCompany,
-  onRenameIndustry, onRenameCompany, onMergeCompany, showUserManagement, showSMSCenter,
-  showWorkforce, showMyActivity, showEmailVerifier, showAPIIntegrations, showBackups, showSMTPSettings, showSecurityCenter,
+  onRenameIndustry, onRenameCompany, onMergeCompany, showUserManagement,
+  showWorkforce, showMyActivity, showEmailVerifier, showAPIIntegrations, showBackups, showSecurityCenter,
 }: CRMSidebarProps) {
   const tree = useMemo(() => getIndustryTree(leads), [leads]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -391,11 +388,6 @@ export function CRMSidebar({
           <div className="relative">
             {navItem("Inactive Leads", <UserX className="h-4 w-4" />, "inactive", stats.inactive)}
           </div>
-          {showSMSCenter && (
-            <div className="relative">
-              {navItem("SMS Center", <Smartphone className="h-4 w-4" />, "sms", 0)}
-            </div>
-          )}
 
           {showMyActivity && (
             <div className="relative">
@@ -436,11 +428,6 @@ export function CRMSidebar({
             </div>
           )}
 
-          {showSMTPSettings && (
-            <div className="relative">
-              {navItem("SMTP Settings", <Mail className="h-4 w-4" />, "smtp-settings", 0)}
-            </div>
-          )}
 
           {showSecurityCenter && (
             <>

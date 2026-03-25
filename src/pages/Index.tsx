@@ -13,7 +13,6 @@ import { DeleteDialog } from "@/components/crm/DeleteDialog";
 import { LeadFilters } from "@/components/crm/LeadFilters";
 import { ExportDropdown } from "@/components/crm/ExportDropdown";
 import { BulkActionBar } from "@/components/crm/BulkActionBar";
-import { SMSCenter } from "@/components/crm/SMSCenter";
 import { UserManagement } from "@/pages/UserManagement";
 import { LiveActivity } from "@/components/workforce/LiveActivity";
 import { TimeLogs } from "@/components/workforce/TimeLogs";
@@ -24,7 +23,6 @@ import { VerificationReport } from "@/components/email-verifier/VerificationRepo
 import { APIDashboard } from "@/components/api-dashboard/APIDashboard";
 import { APISettings } from "@/components/email-verifier/APISettings";
 import { BackupSettings } from "@/components/settings/BackupSettings";
-import { SMTPSettings } from "@/components/settings/SMTPSettings";
 import { SecurityCenter } from "@/components/security/SecurityCenter";
 
 import { Lead, PipelineStatus, EmailVerification } from "@/types/lead";
@@ -57,7 +55,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!currentUser) return;
-    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups", "smtp-settings", "security-center"];
+    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups", "security-center"];
     if (adminOnlyViews.includes(view) && currentUser.role !== "Admin") {
       toast.error("You don't have permission to access this section.");
       setView("all");
@@ -203,21 +201,21 @@ const Index = () => {
   };
 
   const viewTitles: Record<string, string> = {
-    dashboard: "Dashboard", users: "User Management", sms: "SMS Center",
+    dashboard: "Dashboard", users: "User Management",
     all: "All Leads", active: "Active Leads", inactive: "Inactive Leads",
     "workforce-live": "Live Activity", "workforce-timelogs": "Time Logs",
     "workforce-salary": "Salary Calculator", "workforce-settings": "Workforce Settings",
     "my-activity": "My Activity",
     "ev-report": "Verification Report", "ev-settings": "API Settings",
     "api-integrations": "API Dashboard",
-    "backups": "Backups", "smtp-settings": "SMTP Settings",
+    "backups": "Backups",
     "security-center": "Security Center",
   };
   const viewTitle = viewTitles[view] || "All Leads";
 
   const isWorkforceView = view.startsWith("workforce-");
   const isEVView = view.startsWith("ev-");
-  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "sms" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "smtp-settings" && view !== "security-center";
+  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center";
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -271,14 +269,11 @@ const Index = () => {
           return count;
         } : undefined}
         showUserManagement={permissions.canManageUsers}
-        showSMSCenter={permissions.canAccessSMS}
         showWorkforce={isAdmin}
         showMyActivity={!isAdmin}
         showEmailVerifier={isAdmin}
         showAPIIntegrations={isAdmin}
-        
         showBackups={isAdmin}
-        showSMTPSettings={isAdmin}
         showSecurityCenter={isAdmin}
       />
 
@@ -308,8 +303,6 @@ const Index = () => {
         <main className="flex-1 overflow-y-auto p-6">
           {view === "users" && permissions.canManageUsers ? (
             <UserManagement />
-          ) : view === "sms" && permissions.canAccessSMS ? (
-            <SMSCenter leads={leads} industries={industries} companies={companies} />
           ) : view === "workforce-live" && isAdmin ? (
             <LiveActivity />
           ) : view === "workforce-timelogs" && isAdmin ? (
@@ -324,8 +317,6 @@ const Index = () => {
             <APIDashboard />
           ) : view === "backups" && isAdmin ? (
             <BackupSettings leads={leads} />
-          ) : view === "smtp-settings" && isAdmin ? (
-            <SMTPSettings />
           ) : view === "security-center" && isAdmin ? (
             <SecurityCenter leads={leads} />
           ) : isEVView && isAdmin ? (
