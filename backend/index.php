@@ -94,6 +94,10 @@ switch ($resource) {
         }
         break;
 
+    case 'redirect':
+        require __DIR__ . '/api/redirect.php';
+        break;
+
     case 'health':
         echo json_encode([
             'status' => 'ok',
