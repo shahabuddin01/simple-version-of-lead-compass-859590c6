@@ -550,22 +550,6 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
     saveSettings({ ...loadSettings(), autoEnabled: v });
   };
 
-  const toggleEmail = (v: boolean) => {
-    setEmailEnabled(v);
-    saveSettings({ ...loadSettings(), emailEnabled: v });
-  };
-
-  const sendTestEmail = async () => {
-    setSendingTestEmail(true);
-    try {
-      toast.info("Email backup requires SMTP configuration on the server.");
-    } finally {
-      setSendingTestEmail(false);
-    }
-  };
-
-  const connectGoogleDrive = () => {
-    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!googleClientId) {
       toast.error("VITE_GOOGLE_CLIENT_ID not configured. See SETUP_GUIDE.md.");
       return;
