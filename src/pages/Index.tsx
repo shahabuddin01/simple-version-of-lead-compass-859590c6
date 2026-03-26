@@ -361,10 +361,6 @@ const Index = () => {
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
           <h1 className="text-sm font-semibold tracking-tight">{viewTitle}</h1>
           <div className="flex items-center gap-2">
-            {/* Temporary test links — remove after debugging */}
-            <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" className="rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs text-blue-700 hover:bg-blue-100">Test LinkedIn</a>
-            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100">Test Facebook</a>
-            <a href="https://www.google.com" target="_blank" rel="noopener noreferrer" className="rounded-md border border-green-300 bg-green-50 px-2 py-1 text-xs text-green-700 hover:bg-green-100">Test Google</a>
             {isLeadView && (
               <>
                 {permissions.canImport && (
