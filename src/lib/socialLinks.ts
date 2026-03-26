@@ -1,6 +1,6 @@
 /**
- * Social link utilities — opens social media URLs
- * with referrer stripping to prevent platform blocking.
+ * Social link utilities — normalize CRM social URLs
+ * before rendering them as native external anchors.
  */
 
 export function cleanSocialUrl(url: string, platform?: string): string {
@@ -29,34 +29,4 @@ export function cleanSocialUrl(url: string, platform?: string): string {
   }
 
   return clean;
-}
-
-export function openSocialLink(url: string | null | undefined, platform?: string): void {
-  if (!url || url.trim() === "") return;
-
-  const cleanUrl = cleanSocialUrl(url, platform);
-  if (!cleanUrl) return;
-
-  try {
-    new URL(cleanUrl);
-  } catch {
-    return;
-  }
-
-  const link = document.createElement("a");
-  link.href = cleanUrl;
-  link.target = "_blank";
-  link.rel = "noreferrer noopener";
-  link.referrerPolicy = "no-referrer";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-export function copySocialLink(url: string, platform?: string): void {
-  if (!url) return;
-  const cleanUrl = cleanSocialUrl(url, platform);
-  if (cleanUrl) {
-    navigator.clipboard.writeText(cleanUrl);
-  }
 }
