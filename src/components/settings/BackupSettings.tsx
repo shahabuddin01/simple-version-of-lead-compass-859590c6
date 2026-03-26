@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import {
   Download, Upload, Trash2, Database, RefreshCw,
-  Mail, HardDrive, CheckCircle, AlertTriangle,
-  Send, Unplug, FileUp, X, Loader2, ArrowRight,
+  HardDrive, CheckCircle, AlertTriangle,
+  Unplug, FileUp, X, Loader2, ArrowRight, Eye, EyeOff, Settings2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,7 @@ interface RestoreProgress {
 const BACKUP_KEY = "nhproductionhouse_backups";
 const BACKUP_SETTINGS_KEY = "nhproductionhouse_backup_settings";
 const GDRIVE_KEY = "nhproductionhouse_gdrive_connection";
+const GDRIVE_CREDS_KEY = "nhproductionhouse_gdrive_credentials";
 const MAX_BACKUPS = 4;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -71,8 +72,8 @@ function loadBackups(): BackupEntry[] {
 function saveBackups(b: BackupEntry[]) { localStorage.setItem(BACKUP_KEY, JSON.stringify(b)); }
 function loadSettings() {
   try {
-    return JSON.parse(localStorage.getItem(BACKUP_SETTINGS_KEY) || '{"autoEnabled":true,"emailEnabled":false}');
-  } catch { return { autoEnabled: true, emailEnabled: false }; }
+    return JSON.parse(localStorage.getItem(BACKUP_SETTINGS_KEY) || '{"autoEnabled":true}');
+  } catch { return { autoEnabled: true }; }
 }
 function saveSettings(s: Record<string, unknown>) { localStorage.setItem(BACKUP_SETTINGS_KEY, JSON.stringify(s)); }
 function loadGDrive(): { email: string; connected: boolean } | null {
@@ -82,17 +83,12 @@ function saveGDrive(g: { email: string; connected: boolean } | null) {
   if (g) localStorage.setItem(GDRIVE_KEY, JSON.stringify(g));
   else localStorage.removeItem(GDRIVE_KEY);
 }
-function isSMTPConfigured(): boolean {
-  try {
-    const smtp = JSON.parse(localStorage.getItem("nhproductionhouse_smtp_settings") || "null");
-    return !!(smtp && smtp.host && smtp.username && smtp.password && smtp.isActive);
-  } catch { return false; }
+function loadGDriveCreds(): { clientId: string; clientSecret: string } {
+  try { return JSON.parse(localStorage.getItem(GDRIVE_CREDS_KEY) || '{"clientId":"","clientSecret":""}'); }
+  catch { return { clientId: "", clientSecret: "" }; }
 }
-function getSMTPEmail(): string {
-  try {
-    const smtp = JSON.parse(localStorage.getItem("nhproductionhouse_smtp_settings") || "null");
-    return smtp?.senderEmail || smtp?.username || "";
-  } catch { return ""; }
+function saveGDriveCreds(c: { clientId: string; clientSecret: string }) {
+  localStorage.setItem(GDRIVE_CREDS_KEY, JSON.stringify(c));
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "";
