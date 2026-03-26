@@ -827,44 +827,6 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
         </CardContent>
       </Card>
 
-      {/* ─── Email Backup Card ──────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Mail className="h-4 w-4" /> Email Backup
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Send backup to email weekly</p>
-              <p className="text-xs text-muted-foreground">Backup JSON sent as attachment to admin email</p>
-            </div>
-            <Switch checked={emailEnabled} onCheckedChange={toggleEmail} />
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            {smtpConfigured ? (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="text-muted-foreground">SMTP configured</span>
-                <span className="text-xs text-muted-foreground">· {adminEmail}</span>
-              </>
-            ) : (
-              <>
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <span className="text-muted-foreground">SMTP not configured</span>
-                <span className="text-xs text-muted-foreground">— configure in SMTP Settings</span>
-              </>
-            )}
-          </div>
-          <Button variant="outline" size="sm" onClick={sendTestEmail} disabled={sendingTestEmail || !smtpConfigured}>
-            {sendingTestEmail ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-            Send Test Backup Now
-          </Button>
-          {!API_URL && <p className="text-xs text-muted-foreground">Set VITE_API_URL to enable server-side email backup</p>}
-        </CardContent>
-      </Card>
-
       {/* ─── Google Drive Backup Card ──────────────────── */}
       <Card>
         <CardHeader className="pb-3">
@@ -872,7 +834,69 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
             <HardDrive className="h-4 w-4" /> Google Drive Backup
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
+          {/* Credentials Configuration */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Google API Credentials</p>
+                <p className="text-xs text-muted-foreground">Required for Google Drive OAuth authentication</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setShowCredsForm(!showCredsForm)}>
+                <Settings2 className="h-3.5 w-3.5" />
+                {showCredsForm ? "Hide" : gdriveCreds.clientId ? "Edit" : "Configure"}
+              </Button>
+            </div>
+
+            {gdriveCreds.clientId && !showCredsForm && (
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-muted-foreground">Client ID configured</span>
+                <span className="text-xs text-muted-foreground">· {gdriveCreds.clientId.slice(0, 20)}...</span>
+              </div>
+            )}
+
+            {showCredsForm && (
+              <div className="rounded-md border border-border bg-muted/30 p-4 space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">Client ID *</Label>
+                  <Input
+                    value={gdriveCreds.clientId}
+                    onChange={e => setGdriveCreds(c => ({ ...c, clientId: e.target.value }))}
+                    placeholder="xxxx.apps.googleusercontent.com"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">Client Secret *</Label>
+                  <div className="relative">
+                    <Input
+                      type={showClientSecret ? "text" : "password"}
+                      value={gdriveCreds.clientSecret}
+                      onChange={e => setGdriveCreds(c => ({ ...c, clientSecret: e.target.value }))}
+                      placeholder="GOCSPX-..."
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowClientSecret(!showClientSecret)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showClientSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Get these from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Cloud Console</a> → APIs & Services → Credentials → OAuth 2.0 Client IDs
+                </p>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveGDriveCredentials}>Save Credentials</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowCredsForm(false)}>Cancel</Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Connection Status */}
           {gdriveConnection?.connected ? (
             <>
               <div className="flex items-center gap-2 text-sm">
@@ -894,16 +918,15 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
             </>
           ) : (
             <>
-              <p className="text-sm text-muted-foreground">
-                Connect Google Drive to automatically upload weekly backups.
-              </p>
-              <Button variant="outline" size="sm" onClick={connectGoogleDrive}>
+              <Button variant="outline" size="sm" onClick={connectGoogleDrive} disabled={!gdriveCreds.clientId}>
                 <HardDrive className="h-3.5 w-3.5" /> Connect Google Drive
               </Button>
-              <p className="text-xs text-muted-foreground">Requires Google OAuth setup. See SETUP_GUIDE.md.</p>
+              {!gdriveCreds.clientId && (
+                <p className="text-xs text-muted-foreground">Configure credentials above to enable connection.</p>
+              )}
             </>
           )}
-          {!API_URL && <p className="text-xs text-muted-foreground">Set VITE_API_URL to enable Google Drive backup</p>}
+          {!API_URL && <p className="text-xs text-muted-foreground">Set VITE_API_URL to enable server-side Google Drive backup</p>}
         </CardContent>
       </Card>
 
