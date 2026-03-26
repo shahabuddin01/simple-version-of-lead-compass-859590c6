@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AppUser, UserRole, ROLE_COLORS, Permissions, PERMISSION_MATRIX_KEYS, LOCKED_PERMISSIONS, DEFAULT_ROLE_PERMISSIONS } from "@/types/auth";
-import { Plus, X, Lock, Download, Search } from "lucide-react";
+import { Plus, X, Lock, Download, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { checkPasswordStrength, isPasswordValid, hashPassword, getAuditLog, exportAuditCSV, AuditEntry, logAudit } from "@/lib/security";
+import { isBackendConfigured, apiCreateUser, apiUpdateUser, apiGetUsers } from "@/services/api";
 
 const roles: UserRole[] = ["Admin", "Manager", "Employee", "Viewer"];
 const editableRoles: UserRole[] = ["Manager", "Employee", "Viewer"];
@@ -40,6 +41,7 @@ export function UserManagement() {
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "Employee" as UserRole });
   const [overrides, setOverrides] = useState<Partial<Record<keyof Permissions, boolean>>>({});
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
 
   // Audit log state
@@ -64,10 +66,16 @@ export function UserManagement() {
     setModal({ mode: "edit", user });
   };
 
-  const handleSave = () => {
+  const roleMap: Record<UserRole, string> = {
+    Admin: "admin",
+    Manager: "manager",
+    Employee: "employee",
+    Viewer: "viewer",
+  };
+
+  const handleSave = async () => {
     if (!form.name.trim() || !form.email.trim()) { setError("Name and email are required."); return; }
 
-    // Password validation
     if (modal?.mode === "add" && !form.password) { setError("Password is required for new users."); return; }
     if (form.password && !isPasswordValid(form.password)) {
       setError("Password does not meet the security requirements.");
@@ -75,29 +83,72 @@ export function UserManagement() {
     }
 
     const cleanOverrides = Object.keys(overrides).length > 0 ? overrides : undefined;
-    if (modal?.mode === "add") {
-      const err = addUser({
-        name: form.name.trim(), email: form.email.trim(),
-        password: hashPassword(form.password),
-        role: form.role, active: true, permissionOverrides: cleanOverrides,
-      });
-      if (err) { setError(err); return; }
-      toast.success(`User "${form.name.trim()}" created.`);
-    } else if (modal?.mode === "edit" && modal.user) {
-      const updates: Partial<AppUser> = {
-        name: form.name.trim(), email: form.email.trim(),
-        role: form.role, permissionOverrides: cleanOverrides,
-      };
-      if (form.password) {
-        updates.password = hashPassword(form.password);
-        if (currentUser) {
-          logAudit(currentUser.email, currentUser.id, 'PASSWORD_CHANGED', `User: ${form.email.trim()}`);
+
+    if (isBackendConfigured()) {
+      setSaving(true);
+      setError("");
+      try {
+        if (modal?.mode === "add") {
+          await apiCreateUser({
+            name: form.name.trim(),
+            email: form.email.trim(),
+            password: form.password,
+            role: roleMap[form.role],
+          });
+          // Also add to local state so UI updates immediately
+          addUser({
+            name: form.name.trim(), email: form.email.trim(),
+            password: hashPassword(form.password),
+            role: form.role, active: true, permissionOverrides: cleanOverrides,
+          });
+          toast.success(`User "${form.name.trim()}" created in database.`);
+        } else if (modal?.mode === "edit" && modal.user) {
+          const updates: Record<string, any> = {
+            name: form.name.trim(),
+            email: form.email.trim(),
+            role: roleMap[form.role],
+          };
+          if (form.password) updates.password = form.password;
+          await apiUpdateUser(Number(modal.user.id) || 0, updates);
+          // Update local state
+          const localUpdates: Partial<AppUser> = {
+            name: form.name.trim(), email: form.email.trim(),
+            role: form.role, permissionOverrides: cleanOverrides,
+          };
+          if (form.password) localUpdates.password = hashPassword(form.password);
+          updateUser(modal.user.id, localUpdates);
+          toast.success(`User "${form.name.trim()}" updated in database.`);
         }
+        setModal(null);
+      } catch (err: any) {
+        setError(err.message || "Failed to save user.");
+      } finally {
+        setSaving(false);
       }
-      updateUser(modal.user.id, updates);
-      toast.success(`User "${form.name.trim()}" updated.`);
+    } else {
+      // Fallback: localStorage only (preview mode)
+      if (modal?.mode === "add") {
+        const err = addUser({
+          name: form.name.trim(), email: form.email.trim(),
+          password: hashPassword(form.password),
+          role: form.role, active: true, permissionOverrides: cleanOverrides,
+        });
+        if (err) { setError(err); return; }
+        toast.success(`User "${form.name.trim()}" created (local mode).`);
+      } else if (modal?.mode === "edit" && modal.user) {
+        const updates: Partial<AppUser> = {
+          name: form.name.trim(), email: form.email.trim(),
+          role: form.role, permissionOverrides: cleanOverrides,
+        };
+        if (form.password) {
+          updates.password = hashPassword(form.password);
+          if (currentUser) logAudit(currentUser.email, currentUser.id, 'PASSWORD_CHANGED', `User: ${form.email.trim()}`);
+        }
+        updateUser(modal.user.id, updates);
+        toast.success(`User "${form.name.trim()}" updated (local mode).`);
+      }
+      setModal(null);
     }
-    setModal(null);
   };
 
   const handleToggle = (user: AppUser) => {
@@ -485,8 +536,9 @@ export function UserManagement() {
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
-              <button onClick={() => setModal(null)} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors">Cancel</button>
-              <button onClick={handleSave} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+              <button onClick={() => setModal(null)} disabled={saving} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors disabled:opacity-50">Cancel</button>
+              <button onClick={handleSave} disabled={saving} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center gap-2">
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 {modal.mode === "add" ? "Add User" : "Save"}
               </button>
             </div>
