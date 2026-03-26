@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import {
   Download, Upload, Trash2, Database, RefreshCw,
-  Mail, HardDrive, CheckCircle, AlertTriangle,
-  Send, Unplug, FileUp, X, Loader2, ArrowRight,
+  HardDrive, CheckCircle, AlertTriangle,
+  Unplug, FileUp, X, Loader2, ArrowRight, Eye, EyeOff, Settings2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,7 @@ interface RestoreProgress {
 const BACKUP_KEY = "nhproductionhouse_backups";
 const BACKUP_SETTINGS_KEY = "nhproductionhouse_backup_settings";
 const GDRIVE_KEY = "nhproductionhouse_gdrive_connection";
+const GDRIVE_CREDS_KEY = "nhproductionhouse_gdrive_credentials";
 const MAX_BACKUPS = 4;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -71,8 +72,8 @@ function loadBackups(): BackupEntry[] {
 function saveBackups(b: BackupEntry[]) { localStorage.setItem(BACKUP_KEY, JSON.stringify(b)); }
 function loadSettings() {
   try {
-    return JSON.parse(localStorage.getItem(BACKUP_SETTINGS_KEY) || '{"autoEnabled":true,"emailEnabled":false}');
-  } catch { return { autoEnabled: true, emailEnabled: false }; }
+    return JSON.parse(localStorage.getItem(BACKUP_SETTINGS_KEY) || '{"autoEnabled":true}');
+  } catch { return { autoEnabled: true }; }
 }
 function saveSettings(s: Record<string, unknown>) { localStorage.setItem(BACKUP_SETTINGS_KEY, JSON.stringify(s)); }
 function loadGDrive(): { email: string; connected: boolean } | null {
@@ -82,17 +83,12 @@ function saveGDrive(g: { email: string; connected: boolean } | null) {
   if (g) localStorage.setItem(GDRIVE_KEY, JSON.stringify(g));
   else localStorage.removeItem(GDRIVE_KEY);
 }
-function isSMTPConfigured(): boolean {
-  try {
-    const smtp = JSON.parse(localStorage.getItem("nhproductionhouse_smtp_settings") || "null");
-    return !!(smtp && smtp.host && smtp.username && smtp.password && smtp.isActive);
-  } catch { return false; }
+function loadGDriveCreds(): { clientId: string; clientSecret: string } {
+  try { return JSON.parse(localStorage.getItem(GDRIVE_CREDS_KEY) || '{"clientId":"","clientSecret":""}'); }
+  catch { return { clientId: "", clientSecret: "" }; }
 }
-function getSMTPEmail(): string {
-  try {
-    const smtp = JSON.parse(localStorage.getItem("nhproductionhouse_smtp_settings") || "null");
-    return smtp?.senderEmail || smtp?.username || "";
-  } catch { return ""; }
+function saveGDriveCreds(c: { clientId: string; clientSecret: string }) {
+  localStorage.setItem(GDRIVE_CREDS_KEY, JSON.stringify(c));
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -183,7 +179,6 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
   const [backups, setBackups] = useState<BackupEntry[]>(loadBackups);
   const settings = loadSettings();
   const [autoEnabled, setAutoEnabled] = useState(settings.autoEnabled);
-  const [emailEnabled, setEmailEnabled] = useState(settings.emailEnabled ?? false);
   const [creating, setCreating] = useState(false);
 
   // Stored backup restore
@@ -194,10 +189,12 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearInput, setClearInput] = useState("");
 
-  // Email/Drive
-  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  // Google Drive
   const [testingDrive, setTestingDrive] = useState(false);
   const [gdriveConnection, setGdriveConnection] = useState(loadGDrive);
+  const [gdriveCreds, setGdriveCreds] = useState(loadGDriveCreds);
+  const [showClientSecret, setShowClientSecret] = useState(false);
+  const [showCredsForm, setShowCredsForm] = useState(false);
 
   // File upload restore
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -218,8 +215,6 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
     status: "idle", step: "", current: 0, total: 0,
   });
 
-  const smtpConfigured = isSMTPConfigured();
-  const adminEmail = getSMTPEmail();
 
   const callBackendAPI = async (endpoint: string, body: Record<string, unknown>) => {
     if (!API_URL) throw new Error("VITE_API_URL not configured");
@@ -555,29 +550,25 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
     saveSettings({ ...loadSettings(), autoEnabled: v });
   };
 
-  const toggleEmail = (v: boolean) => {
-    setEmailEnabled(v);
-    saveSettings({ ...loadSettings(), emailEnabled: v });
-  };
-
-  const sendTestEmail = async () => {
-    setSendingTestEmail(true);
-    try {
-      toast.info("Email backup requires SMTP configuration on the server.");
-    } finally {
-      setSendingTestEmail(false);
+  const saveGDriveCredentials = () => {
+    if (!gdriveCreds.clientId.trim() || !gdriveCreds.clientSecret.trim()) {
+      toast.error("Both Client ID and Client Secret are required.");
+      return;
     }
+    saveGDriveCreds(gdriveCreds);
+    toast.success("Google Drive credentials saved.");
+    setShowCredsForm(false);
   };
 
   const connectGoogleDrive = () => {
-    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!googleClientId) {
-      toast.error("VITE_GOOGLE_CLIENT_ID not configured. See SETUP_GUIDE.md.");
+    if (!gdriveCreds.clientId.trim()) {
+      toast.error("Please configure Google Drive Client ID first.");
+      setShowCredsForm(true);
       return;
     }
     const redirectUri = `${window.location.origin}/auth/google-drive/callback`;
     const scope = "https://www.googleapis.com/auth/drive.file";
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${gdriveCreds.clientId.trim()}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
     window.open(authUrl, "google-drive-auth", "width=500,height=600");
     const handler = (event: MessageEvent) => {
       if (event.data?.type === "google-drive-connected") {
@@ -836,44 +827,6 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
         </CardContent>
       </Card>
 
-      {/* ─── Email Backup Card ──────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Mail className="h-4 w-4" /> Email Backup
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Send backup to email weekly</p>
-              <p className="text-xs text-muted-foreground">Backup JSON sent as attachment to admin email</p>
-            </div>
-            <Switch checked={emailEnabled} onCheckedChange={toggleEmail} />
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            {smtpConfigured ? (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="text-muted-foreground">SMTP configured</span>
-                <span className="text-xs text-muted-foreground">· {adminEmail}</span>
-              </>
-            ) : (
-              <>
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <span className="text-muted-foreground">SMTP not configured</span>
-                <span className="text-xs text-muted-foreground">— configure in SMTP Settings</span>
-              </>
-            )}
-          </div>
-          <Button variant="outline" size="sm" onClick={sendTestEmail} disabled={sendingTestEmail || !smtpConfigured}>
-            {sendingTestEmail ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-            Send Test Backup Now
-          </Button>
-          {!API_URL && <p className="text-xs text-muted-foreground">Set VITE_API_URL to enable server-side email backup</p>}
-        </CardContent>
-      </Card>
-
       {/* ─── Google Drive Backup Card ──────────────────── */}
       <Card>
         <CardHeader className="pb-3">
@@ -881,7 +834,69 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
             <HardDrive className="h-4 w-4" /> Google Drive Backup
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
+          {/* Credentials Configuration */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Google API Credentials</p>
+                <p className="text-xs text-muted-foreground">Required for Google Drive OAuth authentication</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setShowCredsForm(!showCredsForm)}>
+                <Settings2 className="h-3.5 w-3.5" />
+                {showCredsForm ? "Hide" : gdriveCreds.clientId ? "Edit" : "Configure"}
+              </Button>
+            </div>
+
+            {gdriveCreds.clientId && !showCredsForm && (
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-muted-foreground">Client ID configured</span>
+                <span className="text-xs text-muted-foreground">· {gdriveCreds.clientId.slice(0, 20)}...</span>
+              </div>
+            )}
+
+            {showCredsForm && (
+              <div className="rounded-md border border-border bg-muted/30 p-4 space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">Client ID *</Label>
+                  <Input
+                    value={gdriveCreds.clientId}
+                    onChange={e => setGdriveCreds(c => ({ ...c, clientId: e.target.value }))}
+                    placeholder="xxxx.apps.googleusercontent.com"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">Client Secret *</Label>
+                  <div className="relative">
+                    <Input
+                      type={showClientSecret ? "text" : "password"}
+                      value={gdriveCreds.clientSecret}
+                      onChange={e => setGdriveCreds(c => ({ ...c, clientSecret: e.target.value }))}
+                      placeholder="GOCSPX-..."
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowClientSecret(!showClientSecret)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showClientSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Get these from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Cloud Console</a> → APIs & Services → Credentials → OAuth 2.0 Client IDs
+                </p>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveGDriveCredentials}>Save Credentials</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowCredsForm(false)}>Cancel</Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Connection Status */}
           {gdriveConnection?.connected ? (
             <>
               <div className="flex items-center gap-2 text-sm">
@@ -903,16 +918,15 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
             </>
           ) : (
             <>
-              <p className="text-sm text-muted-foreground">
-                Connect Google Drive to automatically upload weekly backups.
-              </p>
-              <Button variant="outline" size="sm" onClick={connectGoogleDrive}>
+              <Button variant="outline" size="sm" onClick={connectGoogleDrive} disabled={!gdriveCreds.clientId}>
                 <HardDrive className="h-3.5 w-3.5" /> Connect Google Drive
               </Button>
-              <p className="text-xs text-muted-foreground">Requires Google OAuth setup. See SETUP_GUIDE.md.</p>
+              {!gdriveCreds.clientId && (
+                <p className="text-xs text-muted-foreground">Configure credentials above to enable connection.</p>
+              )}
             </>
           )}
-          {!API_URL && <p className="text-xs text-muted-foreground">Set VITE_API_URL to enable Google Drive backup</p>}
+          {!API_URL && <p className="text-xs text-muted-foreground">Set VITE_API_URL to enable server-side Google Drive backup</p>}
         </CardContent>
       </Card>
 
