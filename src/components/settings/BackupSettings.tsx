@@ -550,13 +550,25 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
     saveSettings({ ...loadSettings(), autoEnabled: v });
   };
 
-    if (!googleClientId) {
-      toast.error("VITE_GOOGLE_CLIENT_ID not configured. See SETUP_GUIDE.md.");
+  const saveGDriveCredentials = () => {
+    if (!gdriveCreds.clientId.trim() || !gdriveCreds.clientSecret.trim()) {
+      toast.error("Both Client ID and Client Secret are required.");
+      return;
+    }
+    saveGDriveCreds(gdriveCreds);
+    toast.success("Google Drive credentials saved.");
+    setShowCredsForm(false);
+  };
+
+  const connectGoogleDrive = () => {
+    if (!gdriveCreds.clientId.trim()) {
+      toast.error("Please configure Google Drive Client ID first.");
+      setShowCredsForm(true);
       return;
     }
     const redirectUri = `${window.location.origin}/auth/google-drive/callback`;
     const scope = "https://www.googleapis.com/auth/drive.file";
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${gdriveCreds.clientId.trim()}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
     window.open(authUrl, "google-drive-auth", "width=500,height=600");
     const handler = (event: MessageEvent) => {
       if (event.data?.type === "google-drive-connected") {
