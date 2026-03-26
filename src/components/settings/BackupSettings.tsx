@@ -179,7 +179,6 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
   const [backups, setBackups] = useState<BackupEntry[]>(loadBackups);
   const settings = loadSettings();
   const [autoEnabled, setAutoEnabled] = useState(settings.autoEnabled);
-  const [emailEnabled, setEmailEnabled] = useState(settings.emailEnabled ?? false);
   const [creating, setCreating] = useState(false);
 
   // Stored backup restore
@@ -190,10 +189,12 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearInput, setClearInput] = useState("");
 
-  // Email/Drive
-  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  // Google Drive
   const [testingDrive, setTestingDrive] = useState(false);
   const [gdriveConnection, setGdriveConnection] = useState(loadGDrive);
+  const [gdriveCreds, setGdriveCreds] = useState(loadGDriveCreds);
+  const [showClientSecret, setShowClientSecret] = useState(false);
+  const [showCredsForm, setShowCredsForm] = useState(false);
 
   // File upload restore
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,8 +215,6 @@ export function BackupSettings({ leads }: BackupSettingsProps) {
     status: "idle", step: "", current: 0, total: 0,
   });
 
-  const smtpConfigured = isSMTPConfigured();
-  const adminEmail = getSMTPEmail();
 
   const callBackendAPI = async (endpoint: string, body: Record<string, unknown>) => {
     if (!API_URL) throw new Error("VITE_API_URL not configured");
