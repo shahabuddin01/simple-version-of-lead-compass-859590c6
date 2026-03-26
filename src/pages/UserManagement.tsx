@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AppUser, UserRole, ROLE_COLORS, Permissions, PERMISSION_MATRIX_KEYS, LOCKED_PERMISSIONS, DEFAULT_ROLE_PERMISSIONS } from "@/types/auth";
-import { Plus, X, Lock, Download, Search } from "lucide-react";
+import { Plus, X, Lock, Download, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { checkPasswordStrength, isPasswordValid, hashPassword, getAuditLog, exportAuditCSV, AuditEntry, logAudit } from "@/lib/security";
+import { isBackendConfigured, apiCreateUser, apiUpdateUser, apiGetUsers } from "@/services/api";
 
 const roles: UserRole[] = ["Admin", "Manager", "Employee", "Viewer"];
 const editableRoles: UserRole[] = ["Manager", "Employee", "Viewer"];
