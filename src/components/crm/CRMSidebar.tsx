@@ -430,16 +430,6 @@ export function CRMSidebar({
             </div>
           )}
 
-
-          {showSecurityCenter && (
-            <>
-              <div className="my-3 h-px bg-border" />
-              <div className="relative">
-                {navItem("Security Center", <ShieldCheck className="h-4 w-4" />, "security-center", 0)}
-              </div>
-            </>
-          )}
-
           <div className="my-3 h-px bg-border" />
           <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Industries
