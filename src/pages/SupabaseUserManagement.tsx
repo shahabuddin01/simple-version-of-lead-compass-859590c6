@@ -1,0 +1,174 @@
+import { useState } from "react";
+import { useSupabaseUsers, ManagedUser } from "@/hooks/useSupabaseUsers";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Plus, Edit2, Shield, ShieldCheck, UserX, UserCheck, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+export function SupabaseUserManagement() {
+  const { users, loading, fetchUsers, updateUserRole, toggleUserActive } = useSupabaseUsers();
+  const { appUser } = useSupabaseAuth();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "user" as "admin" | "user" });
+
+  const handleAddUser = async () => {
+    if (!form.fullName || !form.email || !form.password) {
+      toast.error("All fields are required");
+      return;
+    }
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setAdding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-user", {
+        body: { email: form.email, password: form.password, full_name: form.fullName, role: form.role },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(`User "${form.fullName}" created successfully`);
+      setShowAddModal(false);
+      setForm({ fullName: "", email: "", password: "", role: "user" });
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create user");
+    }
+    setAdding(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">User Management</h2>
+          <p className="text-sm text-muted-foreground">{users.length} users</p>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-all"
+        >
+          <Plus className="h-4 w-4" /> Add User
+        </button>
+      </div>
+
+      <div className="rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Role</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/30">
+                <td className="px-4 py-3 font-medium text-foreground">{user.fullName || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                    user.role === "admin" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                  }`}>
+                    {user.role === "admin" ? <ShieldCheck className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
+                    {user.role}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {user.isActive ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {user.userId !== appUser?.id && (
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => updateUserRole(user.userId, user.role === "admin" ? "user" : "admin")}
+                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                        title={user.role === "admin" ? "Demote to user" : "Promote to admin"}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => toggleUserActive(user.userId, user.isActive)}
+                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                        title={user.isActive ? "Deactivate" : "Activate"}
+                      >
+                        {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">Add New User</h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-foreground">Full Name</label>
+                <input value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  placeholder="John Doe" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground">Email</label>
+                <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  placeholder="user@example.com" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground">Password</label>
+                <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  placeholder="Min 6 characters" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground">Role</label>
+                <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as "admin" | "user" })}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => setShowAddModal(false)} disabled={adding}
+                className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleAddUser} disabled={adding}
+                className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-all">
+                {adding ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating...</> : "Create User"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
