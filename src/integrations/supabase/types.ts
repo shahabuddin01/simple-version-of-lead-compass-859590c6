@@ -14,16 +14,217 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      email_verification_cache: {
+        Row: {
+          didyoumean: string | null
+          email: string
+          esp: string | null
+          expires_at: string
+          free: boolean | null
+          id: string
+          quality: string | null
+          result: string | null
+          resultcode: number | null
+          role: boolean | null
+          subresult: string | null
+          verified_at: string
+        }
+        Insert: {
+          didyoumean?: string | null
+          email: string
+          esp?: string | null
+          expires_at?: string
+          free?: boolean | null
+          id?: string
+          quality?: string | null
+          result?: string | null
+          resultcode?: number | null
+          role?: boolean | null
+          subresult?: string | null
+          verified_at?: string
+        }
+        Update: {
+          didyoumean?: string | null
+          email?: string
+          esp?: string | null
+          expires_at?: string
+          free?: boolean | null
+          id?: string
+          quality?: string | null
+          result?: string | null
+          resultcode?: number | null
+          role?: boolean | null
+          subresult?: string | null
+          verified_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          active: boolean
+          company: string
+          company_email: string | null
+          created_at: string
+          created_by: string | null
+          email_verification: Json | null
+          esp: string | null
+          facebook: string | null
+          folder: string | null
+          id: string
+          industry: string | null
+          instagram: string | null
+          linkedin: string | null
+          list_source: string | null
+          name: string
+          notes: string | null
+          personal_email: string | null
+          personal_email_verification: Json | null
+          personal_email2: string | null
+          personal_email2_verification: Json | null
+          personal_phone1: string | null
+          personal_phone2: string | null
+          position: string | null
+          source: string | null
+          status: string
+          tags: string[] | null
+          updated_at: string
+          website: string | null
+          work_email: string | null
+          work_phone: string | null
+        }
+        Insert: {
+          active?: boolean
+          company?: string
+          company_email?: string | null
+          created_at?: string
+          created_by?: string | null
+          email_verification?: Json | null
+          esp?: string | null
+          facebook?: string | null
+          folder?: string | null
+          id?: string
+          industry?: string | null
+          instagram?: string | null
+          linkedin?: string | null
+          list_source?: string | null
+          name: string
+          notes?: string | null
+          personal_email?: string | null
+          personal_email_verification?: Json | null
+          personal_email2?: string | null
+          personal_email2_verification?: Json | null
+          personal_phone1?: string | null
+          personal_phone2?: string | null
+          position?: string | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          website?: string | null
+          work_email?: string | null
+          work_phone?: string | null
+        }
+        Update: {
+          active?: boolean
+          company?: string
+          company_email?: string | null
+          created_at?: string
+          created_by?: string | null
+          email_verification?: Json | null
+          esp?: string | null
+          facebook?: string | null
+          folder?: string | null
+          id?: string
+          industry?: string | null
+          instagram?: string | null
+          linkedin?: string | null
+          list_source?: string | null
+          name?: string
+          notes?: string | null
+          personal_email?: string | null
+          personal_email_verification?: Json | null
+          personal_email2?: string | null
+          personal_email2_verification?: Json | null
+          personal_phone1?: string | null
+          personal_phone2?: string | null
+          position?: string | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          website?: string | null
+          work_email?: string | null
+          work_phone?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +351,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
