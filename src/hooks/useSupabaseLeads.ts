@@ -80,8 +80,8 @@ export const useSupabaseLeads = () => {
     return () => { supabase.removeChannel(channel); };
   }, [fetchLeads]);
 
-  const addLead = useCallback(async (lead: Partial<SupabaseLead>) => {
-    const { error } = await supabase.from("leads").insert([lead]);
+  const addLead = useCallback(async (lead: Partial<SupabaseLead> & { name: string }) => {
+    const { error } = await supabase.from("leads").insert([lead as any]);
     if (error) { toast.error("Failed to add lead: " + error.message); return false; }
     toast.success(`Lead "${lead.name}" added`);
     return true;
@@ -137,7 +137,7 @@ export const useSupabaseLeads = () => {
     fetchLeads();
   }, [fetchLeads]);
 
-  const importLeads = useCallback(async (newLeads: Partial<SupabaseLead>[], updateExisting = false) => {
+  const importLeads = useCallback(async (newLeads: Array<Partial<SupabaseLead> & { name: string }>, updateExisting = false) => {
     if (updateExisting) {
       // Upsert by work_email
       for (const lead of newLeads) {
@@ -152,10 +152,10 @@ export const useSupabaseLeads = () => {
             continue;
           }
         }
-        await supabase.from("leads").insert([lead]);
+        await supabase.from("leads").insert([lead as any]);
       }
     } else {
-      const { error } = await supabase.from("leads").insert(newLeads);
+      const { error } = await supabase.from("leads").insert(newLeads as any);
       if (error) { toast.error("Import failed: " + error.message); return; }
     }
     toast.success(`${newLeads.length} leads imported`);
