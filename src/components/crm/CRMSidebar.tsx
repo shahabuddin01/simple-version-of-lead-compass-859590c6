@@ -129,7 +129,6 @@ interface CRMSidebarProps {
   showEmailVerifier?: boolean;
   showAPIIntegrations?: boolean;
   showBackups?: boolean;
-  showSecurityCenter?: boolean;
 }
 
 interface ContextMenuState {
@@ -144,7 +143,7 @@ export function CRMSidebar({
   leads, view, setView, filter, setFilter, stats, industries,
   onAddIndustry, onAddCompany, onDeleteIndustry, onDeleteCompany,
   onRenameIndustry, onRenameCompany, onMergeCompany, showUserManagement,
-  showWorkforce, showMyActivity, showEmailVerifier, showAPIIntegrations, showBackups, showSecurityCenter,
+  showWorkforce, showMyActivity, showEmailVerifier, showAPIIntegrations, showBackups,
 }: CRMSidebarProps) {
   const tree = useMemo(() => getIndustryTree(leads), [leads]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
