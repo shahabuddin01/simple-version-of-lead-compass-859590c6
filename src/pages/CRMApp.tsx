@@ -14,7 +14,6 @@ import { BulkActionBar } from "@/components/crm/BulkActionBar";
 import { BulkDeleteModal } from "@/components/crm/BulkDeleteModal";
 import { SupabaseUserManagement } from "@/pages/SupabaseUserManagement";
 import { BackupSettings } from "@/components/settings/BackupSettings";
-import { SecurityCenter } from "@/components/security/SecurityCenter";
 import { ClientCommunicationPage } from "@/components/client-communications/ClientCommunicationPage";
 import { VerificationReport } from "@/components/email-verifier/VerificationReport";
 import { APISettings } from "@/components/email-verifier/APISettings";
@@ -115,7 +114,7 @@ const CRMApp = () => {
   // RBAC check
   useEffect(() => {
     if (!appUser) return;
-    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups", "security-center"];
+    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups"];
     if (adminOnlyViews.includes(view) && !isAdmin) {
       toast.error("You don't have permission to access this section.");
       setView("all");
@@ -179,13 +178,12 @@ const CRMApp = () => {
     "ev-report": "Verification Report", "ev-settings": "API Settings",
     "api-integrations": "API Dashboard",
     "backups": "Backups",
-    "security-center": "Security Center",
   };
   const viewTitle = viewTitles[view] || "All Leads";
 
   const isWorkforceView = view.startsWith("workforce-");
   const isEVView = view.startsWith("ev-");
-  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center" && view !== "client-communications";
+  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "client-communications";
 
   if (loading) {
     return (
@@ -213,7 +211,6 @@ const CRMApp = () => {
         showEmailVerifier={isAdmin}
         showAPIIntegrations={isAdmin}
         showBackups={isAdmin}
-        showSecurityCenter={isAdmin}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -252,8 +249,6 @@ const CRMApp = () => {
             <APIDashboard />
           ) : view === "backups" && isAdmin ? (
             <BackupSettings leads={leads} />
-          ) : view === "security-center" && isAdmin ? (
-            <SecurityCenter leads={leads} />
           ) : view === "client-communications" ? (
             <ClientCommunicationPage leads={leads} />
           ) : isEVView && isAdmin ? (

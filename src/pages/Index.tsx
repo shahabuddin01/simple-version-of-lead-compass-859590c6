@@ -25,7 +25,6 @@ import { VerificationReport } from "@/components/email-verifier/VerificationRepo
 import { APIDashboard } from "@/components/api-dashboard/APIDashboard";
 import { APISettings } from "@/components/email-verifier/APISettings";
 import { BackupSettings } from "@/components/settings/BackupSettings";
-import { SecurityCenter } from "@/components/security/SecurityCenter";
 import { ClientCommunicationPage } from "@/components/client-communications/ClientCommunicationPage";
 
 import { Lead, PipelineStatus, EmailVerification } from "@/types/lead";
@@ -61,7 +60,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!currentUser) return;
-    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups", "security-center"];
+    const adminOnlyViews = ["users", "workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings", "ev-report", "ev-settings", "api-integrations", "backups"];
     if (adminOnlyViews.includes(view) && currentUser.role !== "Admin") {
       toast.error("You don't have permission to access this section.");
       setView("all");
@@ -289,13 +288,12 @@ const Index = () => {
     "ev-report": "Verification Report", "ev-settings": "API Settings",
     "api-integrations": "API Dashboard",
     "backups": "Backups",
-    "security-center": "Security Center",
   };
   const viewTitle = viewTitles[view] || "All Leads";
 
   const isWorkforceView = view.startsWith("workforce-");
   const isEVView = view.startsWith("ev-");
-  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "security-center" && view !== "client-communications";
+  const isLeadView = !isWorkforceView && !isEVView && view !== "dashboard" && view !== "users" && view !== "my-activity" && view !== "api-integrations" && view !== "backups" && view !== "client-communications";
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -354,7 +352,6 @@ const Index = () => {
         showEmailVerifier={isAdmin}
         showAPIIntegrations={isAdmin}
         showBackups={isAdmin}
-        showSecurityCenter={isAdmin}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -397,8 +394,6 @@ const Index = () => {
             <APIDashboard />
           ) : view === "backups" && isAdmin ? (
             <BackupSettings leads={leads} />
-          ) : view === "security-center" && isAdmin ? (
-            <SecurityCenter leads={leads} />
           ) : view === "client-communications" ? (
             <ClientCommunicationPage leads={leads} />
           ) : isEVView && isAdmin ? (
