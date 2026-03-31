@@ -309,7 +309,7 @@ const CRMApp = () => {
                     onAddToClientComm={() => {}}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
-                    folders={folders}
+                    folders={allFolders}
                     onMoveToFolder={async (folder: string) => {
                       await bulkMoveToFolder(selectedIds, folder);
                       setSelectedIds(new Set());
