@@ -156,7 +156,43 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
           </button>
           {verifyDropdown}
 
-          {onAddToClientComm && (
+          {onMoveToFolder && (
+            <div className="relative">
+              <button
+                onClick={() => { setFolderOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); setDeleteOpen(false); }}
+                className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent">
+                <Folder className="h-3.5 w-3.5 text-muted-foreground" />
+                Move to Folder <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+              {folderOpen && (
+                <div className="absolute bottom-full mb-1 left-0 z-50 w-56 rounded-md border border-border bg-popover py-1 shadow-lg">
+                  {folders.map((f) => (
+                    <button key={f} onClick={() => { onMoveToFolder(f); setFolderOpen(false); }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent">
+                      <Folder className="h-3 w-3" /> {f}
+                    </button>
+                  ))}
+                  <div className="my-1 h-px bg-border" />
+                  <div className="px-3 py-1.5 space-y-1.5">
+                    <input
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && newFolderName.trim()) { onMoveToFolder(newFolderName.trim()); setNewFolderName(""); setFolderOpen(false); } }}
+                      placeholder="New folder name..."
+                      className="w-full rounded border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    <button
+                      onClick={() => { if (newFolderName.trim()) { onMoveToFolder(newFolderName.trim()); setNewFolderName(""); setFolderOpen(false); } }}
+                      disabled={!newFolderName.trim()}
+                      className="w-full rounded bg-primary px-2 py-1 text-xs text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                      Create & Move
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
             <button onClick={onAddToClientComm}
               className="flex items-center gap-1.5 rounded-md border border-purple-300 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-700 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-900/40">
               <MessageSquare className="h-3.5 w-3.5" />
