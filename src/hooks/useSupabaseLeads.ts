@@ -43,6 +43,7 @@ export interface FilterState {
   status: PipelineStatus | null;
   search: string;
   activeFilter?: "all" | "active" | "inactive";
+  showDuplicatesOnly?: boolean;
 }
 
 export const useSupabaseLeads = () => {
