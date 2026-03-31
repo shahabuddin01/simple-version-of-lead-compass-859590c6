@@ -58,7 +58,7 @@ function Dropdown({ label, value, options, onChange }: {
   );
 }
 
-export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, companies }: LeadFiltersProps) {
+export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, companies, duplicateCount = 0 }: LeadFiltersProps) {
   const activeFilter = filter.activeFilter || "all";
   const activeLabel = activeFilter === "active" ? "Active Leads" : activeFilter === "inactive" ? "Inactive Leads" : null;
   const [searchInput, setSearchInput] = useState(filter.search);
@@ -102,6 +102,18 @@ export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, 
         onChange={(v) => setFilter({ ...filter, personal2ESP: v })} />
       <Dropdown label="Active Status" value={activeLabel} options={["Active Leads", "Inactive Leads"]}
         onChange={(v) => setFilter({ ...filter, activeFilter: v === "Active Leads" ? "active" : v === "Inactive Leads" ? "inactive" : "all" })} />
+
+      <button
+        onClick={() => setFilter({ ...filter, showDuplicatesOnly: !filter.showDuplicatesOnly })}
+        className={`flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm transition-colors ${
+          filter.showDuplicatesOnly
+            ? "border-destructive bg-destructive/10 text-destructive font-medium"
+            : "border-input bg-background text-muted-foreground hover:bg-accent"
+        }`}
+      >
+        <Copy className="h-3.5 w-3.5" />
+        Duplicates{duplicateCount > 0 ? ` (${duplicateCount})` : ""}
+      </button>
     </div>
   );
 }
