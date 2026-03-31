@@ -60,7 +60,87 @@ function Dropdown({ label, value, options, onChange }: {
   );
 }
 
-export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, companies, folders, duplicateCount = 0, onCreateFolder }: LeadFiltersProps) {
+function FolderDropdown({ value, folders, onChange, onCreateFolder }: {
+  value: string | null; folders: string[]; onChange: (v: string | null) => void; onCreateFolder?: (name: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setCreating(false); }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleCreate = () => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    onCreateFolder?.(trimmed);
+    onChange(trimmed);
+    setNewName("");
+    setCreating(false);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-accent"
+      >
+        <Folder className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className={value ? "text-foreground" : "text-muted-foreground"}>{value || "Folder"}</span>
+        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-56 rounded-md border border-border bg-popover py-1 shadow-lg">
+          <button
+            onClick={() => { onChange(null); setOpen(false); }}
+            className="block w-full px-3 py-1.5 text-left text-sm text-muted-foreground hover:bg-accent"
+          >
+            All Folders
+          </button>
+          {folders.map((f) => (
+            <button key={f} onClick={() => { onChange(f); setOpen(false); }}
+              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent ${value === f ? "font-medium text-primary" : ""}`}>
+              <Folder className="h-3 w-3" /> {f}
+            </button>
+          ))}
+          <div className="my-1 h-px bg-border" />
+          {creating ? (
+            <div className="px-3 py-1.5 space-y-1.5">
+              <input
+                autoFocus
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setCreating(false); }}
+                placeholder="Folder name..."
+                className="w-full rounded border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <div className="flex gap-1">
+                <button onClick={handleCreate} className="rounded bg-primary px-2 py-0.5 text-xs text-primary-foreground hover:bg-primary/90">Create</button>
+                <button onClick={() => setCreating(false)} className="rounded px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent">Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setCreating(true)}
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-primary hover:bg-accent"
+            >
+              <FolderPlus className="h-3.5 w-3.5" /> Create New Folder
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function LeadFilters({ filter, setFilter, industries, companies, folders, duplicateCount = 0, onCreateFolder }: LeadFiltersProps) {
   const activeFilter = filter.activeFilter || "all";
   const activeLabel = activeFilter === "active" ? "Active Leads" : activeFilter === "inactive" ? "Inactive Leads" : null;
   const [searchInput, setSearchInput] = useState(filter.search);
@@ -76,6 +156,7 @@ export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, 
 
   useEffect(() => {
     if (filter.search !== searchInput) setSearchInput(filter.search);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter.search]);
 
   return (
