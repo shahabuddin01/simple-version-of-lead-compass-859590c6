@@ -20,10 +20,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    if (import.meta.env.PROD) {
-      // Production: minimal logging
-      console.error("[CRM Error]", error.message);
-    }
+    console.error("[CRM Error]", error.message, error.stack);
+    console.error("[CRM ErrorInfo]", errorInfo.componentStack);
   }
 
   handleReload = () => {
