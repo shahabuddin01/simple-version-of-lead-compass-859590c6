@@ -307,7 +307,7 @@ export const useSupabaseLeads = () => {
   return {
     leads, filteredLeads, loading, filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
-    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
+    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, bulkMoveToFolder, deleteAllLeads,
     fetchLeads, duplicateCount, removeDuplicates,
   };
 };

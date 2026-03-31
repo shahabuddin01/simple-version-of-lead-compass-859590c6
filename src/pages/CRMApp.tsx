@@ -301,6 +301,11 @@ const CRMApp = () => {
                     onAddToClientComm={() => {}}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
+                    folders={folders}
+                    onMoveToFolder={async (folder: string) => {
+                      await bulkMoveToFolder(selectedIds, folder);
+                      setSelectedIds(new Set());
+                    }}
                   />
                 )}
               </AnimatePresence>
