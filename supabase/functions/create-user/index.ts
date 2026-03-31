@@ -71,11 +71,12 @@ serve(async (req) => {
       });
     }
 
-    // Update role if admin (trigger creates 'user' by default)
-    if (role === "admin" && newUser.user) {
+    // Update role if not default 'user' (trigger creates 'user' by default)
+    const validRoles = ["admin", "manager", "viewer", "user"];
+    if (role && role !== "user" && validRoles.includes(role) && newUser.user) {
       await supabaseAdmin
         .from("user_roles")
-        .update({ role: "admin" })
+        .update({ role })
         .eq("user_id", newUser.user.id);
     }
 
