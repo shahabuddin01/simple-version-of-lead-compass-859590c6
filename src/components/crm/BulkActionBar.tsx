@@ -193,6 +193,7 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
             </div>
           )}
 
+          {onAddToClientComm && (
             <button onClick={onAddToClientComm}
               className="flex items-center gap-1.5 rounded-md border border-purple-300 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-700 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-900/40">
               <MessageSquare className="h-3.5 w-3.5" />
