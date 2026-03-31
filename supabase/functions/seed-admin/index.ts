@@ -18,19 +18,7 @@ serve(async (req) => {
 
     const { email, password, full_name } = await req.json();
 
-    // Check if any admin already exists
-    const { data: existingAdmins } = await supabaseAdmin
-      .from("user_roles")
-      .select("id")
-      .eq("role", "admin")
-      .limit(1);
-
-    if (existingAdmins && existingAdmins.length > 0) {
-      return new Response(JSON.stringify({ error: "Admin already exists" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    // Try to create user, if exists update password
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -38,21 +26,39 @@ serve(async (req) => {
       user_metadata: { full_name },
     });
 
-    if (createError) {
+    let userId: string;
+
+    if (createError && createError.message.includes("already been registered")) {
+      // Find existing user and update password
+      const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
+      const existing = users?.find(u => u.email === email);
+      if (!existing) {
+        return new Response(JSON.stringify({ error: "User not found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = existing.id;
+      await supabaseAdmin.auth.admin.updateUser(userId, { password, email_confirm: true });
+    } else if (createError) {
       return new Response(JSON.stringify({ error: createError.message }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    } else {
+      userId = newUser.user!.id;
     }
 
-    // Set role to admin
-    if (newUser.user) {
-      await supabaseAdmin
-        .from("user_roles")
-        .upsert({ user_id: newUser.user.id, role: "admin" }, { onConflict: "user_id,role" });
-    }
+    // Ensure profile exists
+    await supabaseAdmin.from("profiles").upsert({
+      user_id: userId, full_name: full_name || "Admin", email,
+    }, { onConflict: "user_id" });
 
-    return new Response(JSON.stringify({ success: true, userId: newUser.user?.id }), {
-      status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Ensure admin role
+    await supabaseAdmin.from("user_roles").upsert({
+      user_id: userId, role: "admin",
+    }, { onConflict: "user_id,role" });
+
+    return new Response(JSON.stringify({ success: true, userId }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {
