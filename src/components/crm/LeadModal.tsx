@@ -375,6 +375,11 @@ export function LeadModal({ lead, existingTypes, existingCompanies, onSave, onCl
               <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-card shadow transition-transform ${form.active ? "left-[18px]" : "left-0.5"}`} />
             </button>
           </div>
+          {/* Folder */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Folder</label>
+            <input value={form.folder} onChange={e => set("folder", e.target.value)} className={inputClass("")} placeholder="e.g. Hot Leads" />
+          </div>
           {/* Notes */}
           <div className="col-span-2">
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Notes</label>
