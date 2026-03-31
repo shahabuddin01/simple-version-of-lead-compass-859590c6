@@ -2,15 +2,25 @@ import { useState } from "react";
 import { useSupabaseUsers, ManagedUser } from "@/hooks/useSupabaseUsers";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit2, Shield, ShieldCheck, UserX, UserCheck, Loader2 } from "lucide-react";
+import { Plus, ShieldCheck, Shield, Eye, Briefcase, UserX, UserCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+type AppRole = "admin" | "manager" | "viewer" | "user";
+
+const ROLE_CONFIG: Record<AppRole, { label: string; icon: typeof Shield; color: string }> = {
+  admin: { label: "Admin", icon: ShieldCheck, color: "bg-red-100 text-red-700" },
+  manager: { label: "Manager", icon: Briefcase, color: "bg-purple-100 text-purple-700" },
+  user: { label: "User", icon: Shield, color: "bg-blue-100 text-blue-700" },
+  viewer: { label: "Viewer", icon: Eye, color: "bg-gray-100 text-gray-600" },
+};
 
 export function SupabaseUserManagement() {
   const { users, loading, fetchUsers, updateUserRole, toggleUserActive } = useSupabaseUsers();
   const { appUser } = useSupabaseAuth();
   const [showAddModal, setShowAddModal] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "user" as "admin" | "user" });
+  const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "user" as AppRole });
+  const [editingRole, setEditingRole] = useState<string | null>(null);
 
   const handleAddUser = async () => {
     if (!form.fullName || !form.email || !form.password) {
@@ -39,6 +49,11 @@ export function SupabaseUserManagement() {
       toast.error(err.message || "Failed to create user");
     }
     setAdding(false);
+  };
+
+  const handleRoleChange = async (userId: string, newRole: AppRole) => {
+    await updateUserRole(userId, newRole);
+    setEditingRole(null);
   };
 
   if (loading) {
@@ -76,35 +91,50 @@ export function SupabaseUserManagement() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                <td className="px-4 py-3 font-medium text-foreground">{user.fullName || "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
-                <td className="px-4 py-3">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    user.role === "admin" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-                  }`}>
-                    {user.role === "admin" ? <ShieldCheck className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-                  }`}>
-                    {user.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {user.userId !== appUser?.id && (
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => updateUserRole(user.userId, user.role === "admin" ? "user" : "admin")}
-                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                        title={user.role === "admin" ? "Demote to user" : "Promote to admin"}
+            {users.map((user) => {
+              const roleInfo = ROLE_CONFIG[user.role] || ROLE_CONFIG.user;
+              const RoleIcon = roleInfo.icon;
+              const isCurrentUser = user.userId === appUser?.id;
+
+              return (
+                <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/30">
+                  <td className="px-4 py-3 font-medium text-foreground">{user.fullName || "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
+                  <td className="px-4 py-3">
+                    {editingRole === user.userId && !isCurrentUser ? (
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user.userId, e.target.value as AppRole)}
+                        onBlur={() => setEditingRole(null)}
+                        autoFocus
+                        className="rounded-md border border-input bg-background px-2 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring/20"
                       >
-                        <Edit2 className="h-4 w-4" />
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="user">User</option>
+                        <option value="viewer">Viewer</option>
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => !isCurrentUser && setEditingRole(user.userId)}
+                        disabled={isCurrentUser}
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${roleInfo.color} ${!isCurrentUser ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
+                        title={isCurrentUser ? "Cannot change own role" : "Click to change role"}
+                      >
+                        <RoleIcon className="h-3 w-3" />
+                        {roleInfo.label}
                       </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                    }`}>
+                      {user.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {!isCurrentUser && (
                       <button
                         onClick={() => toggleUserActive(user.userId, user.isActive)}
                         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
@@ -112,11 +142,11 @@ export function SupabaseUserManagement() {
                       >
                         {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                       </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -148,10 +178,12 @@ export function SupabaseUserManagement() {
               </div>
               <div>
                 <label className="text-sm font-medium text-foreground">Role</label>
-                <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as "admin" | "user" })}
+                <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as AppRole })}
                   className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20">
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="viewer">Viewer</option>
                 </select>
               </div>
             </div>
