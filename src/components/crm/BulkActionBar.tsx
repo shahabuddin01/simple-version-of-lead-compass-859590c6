@@ -29,6 +29,8 @@ interface BulkActionBarProps {
   onAddToClientComm?: () => void;
   pageLeadCount?: number;
   totalLeads?: number;
+  folders?: string[];
+  onMoveToFolder?: (folder: string) => void;
 }
 
 export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, onAddToClientComm, pageLeadCount, totalLeads }: BulkActionBarProps) {
