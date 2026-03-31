@@ -42,6 +42,7 @@ export interface FilterState {
   company: string | null;
   status: PipelineStatus | null;
   search: string;
+  folder?: string | null;
   activeFilter?: "all" | "active" | "inactive";
   showDuplicatesOnly?: boolean;
 }
