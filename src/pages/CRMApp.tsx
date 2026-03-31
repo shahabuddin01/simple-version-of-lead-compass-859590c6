@@ -93,7 +93,7 @@ const CRMApp = () => {
     leads: supabaseLeads, filteredLeads: supabaseFilteredLeads, loading,
     filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
-    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
+    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, bulkMoveToFolder, deleteAllLeads,
     duplicateCount, removeDuplicates,
   } = useSupabaseLeads();
 

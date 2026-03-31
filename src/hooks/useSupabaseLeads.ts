@@ -145,6 +145,14 @@ export const useSupabaseLeads = () => {
     fetchLeads();
   }, [fetchLeads]);
 
+  const bulkMoveToFolder = useCallback(async (ids: Set<string>, folder: string) => {
+    const idArray = Array.from(ids);
+    const { error } = await supabase.from("leads").update({ folder }).in("id", idArray);
+    if (error) { toast.error("Failed to move leads: " + error.message); return; }
+    toast.success(`${idArray.length} leads moved to "${folder}"`);
+    fetchLeads();
+  }, [fetchLeads]);
+
   const deleteAllLeads = useCallback(async () => {
     const { error } = await supabase.from("leads").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     if (error) { toast.error("Delete all failed: " + error.message); return; }
