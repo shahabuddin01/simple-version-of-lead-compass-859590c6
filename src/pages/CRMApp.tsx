@@ -106,6 +106,13 @@ const CRMApp = () => {
   const [modal, setModal] = useState<{ type: "add" | "edit"; lead?: Lead } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null);
+  const [customFolders, setCustomFolders] = useState<string[]>([]);
+
+  // Merge DB-derived folders with locally created ones
+  const allFolders = useMemo(() => {
+    const set = new Set([...folders, ...customFolders]);
+    return [...set].sort();
+  }, [folders, customFolders]);
 
   // Convert to frontend format
   const leads = useMemo(() => supabaseLeads.map(toFrontendLead), [supabaseLeads]);
