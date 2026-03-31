@@ -91,7 +91,7 @@ const CRMApp = () => {
   const { appUser, isAdmin, logout } = useSupabaseAuth();
   const {
     leads: supabaseLeads, filteredLeads: supabaseFilteredLeads, loading,
-    filter, setFilter, sortBy, setSortBy, stats, industries, companies,
+    filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
     bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
     duplicateCount, removeDuplicates,
