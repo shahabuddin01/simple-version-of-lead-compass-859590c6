@@ -54,7 +54,7 @@ export const useSupabaseUsers = () => {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const updateUserRole = useCallback(async (userId: string, newRole: "admin" | "user") => {
+  const updateUserRole = useCallback(async (userId: string, newRole: "admin" | "manager" | "viewer" | "user") => {
     const { error } = await supabase
       .from("user_roles")
       .update({ role: newRole })

@@ -21,7 +21,8 @@ interface EmployeeStatus {
 }
 
 export function LiveActivity() {
-  const { users } = useAuth();
+  const { appUser } = useSupabaseAuth();
+  const users: { id: string; name: string; role: string }[] = appUser ? [{ id: appUser.id, name: appUser.fullName, role: appUser.role }] : [];
   const [refreshKey, setRefreshKey] = useState(0);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const dateStr = new Date().toISOString().split("T")[0];

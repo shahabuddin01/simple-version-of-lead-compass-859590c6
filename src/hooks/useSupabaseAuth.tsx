@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
-type AppRole = "admin" | "user";
+type AppRole = "admin" | "manager" | "viewer" | "user";
 
 export interface AppUser {
   id: string;
