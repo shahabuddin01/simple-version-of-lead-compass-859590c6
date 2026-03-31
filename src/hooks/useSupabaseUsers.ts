@@ -43,7 +43,7 @@ export const useSupabaseUsers = () => {
       userId: p.user_id,
       fullName: p.full_name || "",
       email: p.email || "",
-      role: (roleMap.get(p.user_id) as "admin" | "user") || "user",
+      role: (roleMap.get(p.user_id) as "admin" | "manager" | "viewer" | "user") || "user",
       isActive: p.is_active ?? true,
       createdAt: p.created_at,
     }));
