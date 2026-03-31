@@ -271,8 +271,8 @@ const CRMApp = () => {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={folders} duplicateCount={duplicateCount} onCreateFolder={(name) => {
-                  // Folder is created by assigning it — no separate table needed
+                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={allFolders} duplicateCount={duplicateCount} onCreateFolder={(name) => {
+                  setCustomFolders(prev => prev.includes(name) ? prev : [...prev, name]);
                   toast.success(`Folder "${name}" created`);
                 }} />
                 {isAdmin && duplicateCount > 0 && (filter as any).showDuplicatesOnly && (
