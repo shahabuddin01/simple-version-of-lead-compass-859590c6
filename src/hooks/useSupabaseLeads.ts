@@ -249,6 +249,7 @@ export const useSupabaseLeads = () => {
 
   const industries = useMemo(() => [...new Set(leads.map(l => l.industry).filter(Boolean))], [leads]);
   const companies = useMemo(() => [...new Set(leads.map(l => l.company).filter(Boolean))], [leads]);
+  const folders = useMemo(() => [...new Set(leads.map(l => l.folder).filter(Boolean))], [leads]);
 
   const removeDuplicates = useCallback(async () => {
     // Keep the oldest lead (earliest created_at) for each duplicate group, delete the rest
