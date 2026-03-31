@@ -58,6 +58,7 @@ export interface FilterState {
   personalESP?: string | null;
   personal2ESP?: string | null;
   activeFilter?: "all" | "active" | "inactive";
+  showDuplicatesOnly?: boolean;
 }
 
 export interface ImportOptions {

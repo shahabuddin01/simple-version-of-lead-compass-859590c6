@@ -27,7 +27,7 @@ import { MyActivity } from "@/components/workforce/MyActivity";
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { AnimatePresence } from "motion/react";
-import { Plus, Upload, Loader2 } from "lucide-react";
+import { Plus, Upload, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 // Adapter to convert Supabase leads to legacy Lead type for existing components
@@ -94,6 +94,7 @@ const CRMApp = () => {
     filter, setFilter, sortBy, setSortBy, stats, industries, companies,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
     bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
+    duplicateCount, removeDuplicates,
   } = useSupabaseLeads();
 
   const [view, setView] = useState<ViewMode>("dashboard");
@@ -261,7 +262,21 @@ const CRMApp = () => {
             />
           ) : (
             <div className="space-y-4">
-              <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} />
+              <div className="flex items-center gap-2">
+                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} duplicateCount={duplicateCount} />
+                {isAdmin && duplicateCount > 0 && (filter as any).showDuplicatesOnly && (
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Remove ${duplicateCount} duplicate leads? The oldest entry for each group will be kept.`)) {
+                        await removeDuplicates();
+                      }
+                    }}
+                    className="flex items-center gap-1.5 whitespace-nowrap rounded-md bg-destructive px-3 py-2 text-sm font-medium text-destructive-foreground shadow-sm hover:bg-destructive/90 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" /> Remove Duplicates
+                  </button>
+                )}
+              </div>
               <AnimatePresence>
                 {selectedIds.size > 0 && (
                   <BulkActionBar
