@@ -1,5 +1,5 @@
 import { FilterState, PipelineStatus } from "@/types/lead";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Copy } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 interface LeadFiltersProps {
@@ -9,6 +9,7 @@ interface LeadFiltersProps {
   setSortBy: (s: "name" | "company" | "dateAdded") => void;
   industries: string[];
   companies: string[];
+  duplicateCount?: number;
 }
 
 const statuses: PipelineStatus[] = ["New", "Contacted", "In Progress", "Closed", "Not Interested"];
