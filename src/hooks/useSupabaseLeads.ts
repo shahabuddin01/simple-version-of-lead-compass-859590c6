@@ -221,6 +221,7 @@ export const useSupabaseLeads = () => {
     if (filter.industry) result = result.filter(l => l.industry === filter.industry);
     if (filter.company) result = result.filter(l => l.company === filter.company);
     if (filter.status) result = result.filter(l => l.status === filter.status);
+    if (filter.folder) result = result.filter(l => l.folder === filter.folder);
     if (filter.search) {
       const s = filter.search.toLowerCase();
       result = result.filter(l =>
