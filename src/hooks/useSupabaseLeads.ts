@@ -248,10 +248,63 @@ export const useSupabaseLeads = () => {
   const industries = useMemo(() => [...new Set(leads.map(l => l.industry).filter(Boolean))], [leads]);
   const companies = useMemo(() => [...new Set(leads.map(l => l.company).filter(Boolean))], [leads]);
 
+  const removeDuplicates = useCallback(async () => {
+    // Keep the oldest lead (earliest created_at) for each duplicate group, delete the rest
+    const emailMap = new Map<string, SupabaseLead[]>();
+    const nameCompanyMap = new Map<string, SupabaseLead[]>();
+
+    leads.forEach(l => {
+      if (l.work_email && l.work_email.trim()) {
+        const key = l.work_email.trim().toLowerCase();
+        const arr = emailMap.get(key) || [];
+        arr.push(l);
+        emailMap.set(key, arr);
+      }
+      const ncKey = `${l.name.trim().toLowerCase()}||${l.company.trim().toLowerCase()}`;
+      if (l.name.trim()) {
+        const arr = nameCompanyMap.get(ncKey) || [];
+        arr.push(l);
+        nameCompanyMap.set(ncKey, arr);
+      }
+    });
+
+    const idsToDelete = new Set<string>();
+
+    const processDups = (groups: Map<string, SupabaseLead[]>) => {
+      groups.forEach(group => {
+        if (group.length > 1) {
+          // Sort by created_at ascending, keep first
+          group.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+          group.slice(1).forEach(l => idsToDelete.add(l.id));
+        }
+      });
+    };
+
+    processDups(emailMap);
+    processDups(nameCompanyMap);
+
+    if (idsToDelete.size === 0) {
+      toast.info("No duplicates found");
+      return 0;
+    }
+
+    const idArray = Array.from(idsToDelete);
+    // Delete in batches of 100
+    for (let i = 0; i < idArray.length; i += 100) {
+      const batch = idArray.slice(i, i + 100);
+      const { error } = await supabase.from("leads").delete().in("id", batch);
+      if (error) { toast.error("Failed to remove duplicates: " + error.message); return 0; }
+    }
+
+    toast.success(`${idsToDelete.size} duplicate leads removed`);
+    fetchLeads();
+    return idsToDelete.size;
+  }, [leads, fetchLeads]);
+
   return {
     leads, filteredLeads, loading, filter, setFilter, sortBy, setSortBy, stats, industries, companies,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
     bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
-    fetchLeads,
+    fetchLeads, duplicateCount, removeDuplicates,
   };
 };
