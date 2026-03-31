@@ -164,7 +164,7 @@ export function LeadModal({ lead, existingTypes, existingCompanies, onSave, onCl
         phone: lead.phone, personalPhone1: lead.personalPhone1 || "", personalPhone2: lead.personalPhone2 || "",
         email: lead.email, personalEmail: lead.personalEmail, personalEmail2: lead.personalEmail2 || "",
         linkedin: lead.linkedin, facebook: lead.facebook, instagram: lead.instagram,
-        status: lead.status, active: lead.active, notes: lead.notes,
+        status: lead.status, active: lead.active, notes: lead.notes, folder: lead.folder || "",
       });
       setWorkVerification(lead.emailVerification);
       setPersonalVerification(lead.personalEmailVerification);
