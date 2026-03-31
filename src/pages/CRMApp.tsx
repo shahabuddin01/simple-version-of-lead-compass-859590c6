@@ -263,7 +263,7 @@ const CRMApp = () => {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} duplicateCount={duplicateCount} />
+                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={folders} duplicateCount={duplicateCount} />
                 {isAdmin && duplicateCount > 0 && (filter as any).showDuplicatesOnly && (
                   <button
                     onClick={async () => {

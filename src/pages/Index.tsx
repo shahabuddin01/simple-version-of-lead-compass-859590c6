@@ -406,7 +406,7 @@ const Index = () => {
             />
           ) : (
             <div className="space-y-4">
-              <LeadFilters filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} />
+              <LeadFilters filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={[]} />
               <AnimatePresence>
                 {selectedIds.size > 0 && (
                   <BulkActionBar
