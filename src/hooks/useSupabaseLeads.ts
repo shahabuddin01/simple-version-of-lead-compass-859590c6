@@ -42,6 +42,7 @@ export interface FilterState {
   company: string | null;
   status: PipelineStatus | null;
   search: string;
+  folder?: string | null;
   activeFilter?: "all" | "active" | "inactive";
   showDuplicatesOnly?: boolean;
 }
@@ -220,6 +221,7 @@ export const useSupabaseLeads = () => {
     if (filter.industry) result = result.filter(l => l.industry === filter.industry);
     if (filter.company) result = result.filter(l => l.company === filter.company);
     if (filter.status) result = result.filter(l => l.status === filter.status);
+    if (filter.folder) result = result.filter(l => l.folder === filter.folder);
     if (filter.search) {
       const s = filter.search.toLowerCase();
       result = result.filter(l =>
@@ -247,6 +249,7 @@ export const useSupabaseLeads = () => {
 
   const industries = useMemo(() => [...new Set(leads.map(l => l.industry).filter(Boolean))], [leads]);
   const companies = useMemo(() => [...new Set(leads.map(l => l.company).filter(Boolean))], [leads]);
+  const folders = useMemo(() => [...new Set(leads.map(l => l.folder).filter(Boolean))], [leads]);
 
   const removeDuplicates = useCallback(async () => {
     // Keep the oldest lead (earliest created_at) for each duplicate group, delete the rest
@@ -302,7 +305,7 @@ export const useSupabaseLeads = () => {
   }, [leads, fetchLeads]);
 
   return {
-    leads, filteredLeads, loading, filter, setFilter, sortBy, setSortBy, stats, industries, companies,
+    leads, filteredLeads, loading, filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
     bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
     fetchLeads, duplicateCount, removeDuplicates,

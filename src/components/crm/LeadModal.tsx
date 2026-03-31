@@ -142,7 +142,7 @@ export function LeadModal({ lead, existingTypes, existingCompanies, onSave, onCl
     phone: "", personalPhone1: "", personalPhone2: "",
     email: "", personalEmail: "", personalEmail2: "",
     linkedin: "", facebook: "", instagram: "",
-    status: "New" as PipelineStatus, active: true, notes: "",
+    status: "New" as PipelineStatus, active: true, notes: "", folder: "",
   });
   const [typeSuggestions, setTypeSuggestions] = useState(false);
   const [companySuggestions, setCompanySuggestions] = useState(false);
@@ -164,7 +164,7 @@ export function LeadModal({ lead, existingTypes, existingCompanies, onSave, onCl
         phone: lead.phone, personalPhone1: lead.personalPhone1 || "", personalPhone2: lead.personalPhone2 || "",
         email: lead.email, personalEmail: lead.personalEmail, personalEmail2: lead.personalEmail2 || "",
         linkedin: lead.linkedin, facebook: lead.facebook, instagram: lead.instagram,
-        status: lead.status, active: lead.active, notes: lead.notes,
+        status: lead.status, active: lead.active, notes: lead.notes, folder: lead.folder || "",
       });
       setWorkVerification(lead.emailVerification);
       setPersonalVerification(lead.personalEmailVerification);
@@ -374,6 +374,11 @@ export function LeadModal({ lead, existingTypes, existingCompanies, onSave, onCl
               className={`relative h-5 w-9 rounded-full transition-colors ${form.active ? "bg-toggle-active" : "bg-toggle-inactive"}`}>
               <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-card shadow transition-transform ${form.active ? "left-[18px]" : "left-0.5"}`} />
             </button>
+          </div>
+          {/* Folder */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Folder</label>
+            <input value={form.folder} onChange={e => set("folder", e.target.value)} className={inputClass("")} placeholder="e.g. Hot Leads" />
           </div>
           {/* Notes */}
           <div className="col-span-2">
