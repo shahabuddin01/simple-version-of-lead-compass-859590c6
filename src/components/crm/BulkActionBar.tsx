@@ -37,6 +37,8 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
   const [statusOpen, setStatusOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [folderOpen, setFolderOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
   const [verifyTypes, setVerifyTypes] = useState<Set<"work" | "personal1" | "personal2">>(new Set(["work"]));
   const statusBtnRef = useRef<HTMLButtonElement>(null);
   const verifyBtnRef = useRef<HTMLButtonElement>(null);
