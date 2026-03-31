@@ -41,7 +41,7 @@ export function LiveActivity() {
     const idleMs = settings.idleThresholdMinutes * 60 * 1000;
     const autoEndMs = settings.autoSessionEndMinutes * 60 * 1000;
 
-    const nonAdminUsers = users.filter(u => u.active && u.role !== "Admin");
+    const nonAdminUsers = users.filter(u => u.role !== "admin");
 
     return nonAdminUsers.map((user): EmployeeStatus => {
       const userLogs = logs.filter(l => l.userId === user.id && l.date === dateStr);
