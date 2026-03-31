@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import { PipelineStatus } from "@/types/lead";
-import { ChevronDown, CheckSquare, X, MailCheck, Trash2, MessageSquare, FolderPlus, Folder } from "lucide-react";
+import { ChevronDown, CheckSquare, X, MailCheck, Trash2, MessageSquare, Folder } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "motion/react";
 
