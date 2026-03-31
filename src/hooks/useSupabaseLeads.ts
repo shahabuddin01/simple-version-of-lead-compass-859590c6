@@ -52,17 +52,30 @@ export const useSupabaseLeads = () => {
   const [sortBy, setSortBy] = useState<"name" | "company" | "dateAdded">("name");
 
   const fetchLeads = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const PAGE_SIZE = 1000;
+    let allLeads: SupabaseLead[] = [];
+    let from = 0;
+    let hasMore = true;
 
-    if (error) {
-      console.error("Error fetching leads:", error);
-      toast.error("Failed to load leads");
-      return;
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error("Error fetching leads:", error);
+        toast.error("Failed to load leads");
+        return;
+      }
+
+      allLeads = allLeads.concat((data as SupabaseLead[]) || []);
+      hasMore = (data?.length ?? 0) === PAGE_SIZE;
+      from += PAGE_SIZE;
     }
-    setLeads((data as SupabaseLead[]) || []);
+
+    setLeads(allLeads);
     setLoading(false);
   }, []);
 
