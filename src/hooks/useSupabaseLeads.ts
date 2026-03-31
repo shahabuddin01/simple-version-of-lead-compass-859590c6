@@ -176,8 +176,43 @@ export const useSupabaseLeads = () => {
     fetchLeads();
   }, [fetchLeads]);
 
+  // Detect duplicate IDs (by work_email or name+company)
+  const duplicateIds = useMemo(() => {
+    const emailMap = new Map<string, string[]>();
+    const nameCompanyMap = new Map<string, string[]>();
+    const dupSet = new Set<string>();
+
+    leads.forEach(l => {
+      // By work_email
+      if (l.work_email && l.work_email.trim()) {
+        const key = l.work_email.trim().toLowerCase();
+        const arr = emailMap.get(key) || [];
+        arr.push(l.id);
+        emailMap.set(key, arr);
+      }
+      // By name + company
+      const ncKey = `${l.name.trim().toLowerCase()}||${l.company.trim().toLowerCase()}`;
+      if (l.name.trim()) {
+        const arr = nameCompanyMap.get(ncKey) || [];
+        arr.push(l.id);
+        nameCompanyMap.set(ncKey, arr);
+      }
+    });
+
+    emailMap.forEach(ids => { if (ids.length > 1) ids.forEach(id => dupSet.add(id)); });
+    nameCompanyMap.forEach(ids => { if (ids.length > 1) ids.forEach(id => dupSet.add(id)); });
+
+    return dupSet;
+  }, [leads]);
+
+  const duplicateCount = duplicateIds.size;
+
   const filteredLeads = useMemo(() => {
     let result = [...leads];
+
+    if (filter.showDuplicatesOnly) {
+      result = result.filter(l => duplicateIds.has(l.id));
+    }
 
     if (filter.activeFilter === "active") result = result.filter(l => l.active);
     else if (filter.activeFilter === "inactive") result = result.filter(l => !l.active);
@@ -199,7 +234,7 @@ export const useSupabaseLeads = () => {
     });
 
     return result;
-  }, [leads, filter, sortBy]);
+  }, [leads, filter, sortBy, duplicateIds]);
 
   const stats = useMemo(() => {
     const total = leads.length;
