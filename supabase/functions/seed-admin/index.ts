@@ -38,7 +38,7 @@ serve(async (req) => {
         });
       }
       userId = existing.id;
-      await supabaseAdmin.auth.admin.updateUser(userId, { password, email_confirm: true });
+      await supabaseAdmin.auth.admin.updateUserById(userId, { password, email_confirm: true });
     } else if (createError) {
       return new Response(JSON.stringify({ error: createError.message }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
