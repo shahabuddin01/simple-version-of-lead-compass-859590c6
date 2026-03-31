@@ -54,6 +54,7 @@ export interface FilterState {
   company: string | null;
   status: PipelineStatus | null;
   search: string;
+  folder?: string | null;
   workESP?: string | null;
   personalESP?: string | null;
   personal2ESP?: string | null;
