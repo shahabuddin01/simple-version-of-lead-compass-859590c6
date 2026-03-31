@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import {
   getActivityLogs, getTimeSessions, getHourlyStats,
   ActivityLog, TimeSession, HourlyStat,
