@@ -7,7 +7,7 @@ export interface ManagedUser {
   userId: string;
   fullName: string;
   email: string;
-  role: "admin" | "user";
+  role: "admin" | "manager" | "viewer" | "user";
   isActive: boolean;
   createdAt: string;
 }
@@ -43,7 +43,7 @@ export const useSupabaseUsers = () => {
       userId: p.user_id,
       fullName: p.full_name || "",
       email: p.email || "",
-      role: (roleMap.get(p.user_id) as "admin" | "user") || "user",
+      role: (roleMap.get(p.user_id) as "admin" | "manager" | "viewer" | "user") || "user",
       isActive: p.is_active ?? true,
       createdAt: p.created_at,
     }));
@@ -54,7 +54,7 @@ export const useSupabaseUsers = () => {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const updateUserRole = useCallback(async (userId: string, newRole: "admin" | "user") => {
+  const updateUserRole = useCallback(async (userId: string, newRole: "admin" | "manager" | "viewer" | "user") => {
     const { error } = await supabase
       .from("user_roles")
       .update({ role: newRole })

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import {
   getActivityLogs, getTimeSessions, getHourlyStats,
   ActivityLog, TimeSession, HourlyStat,
@@ -21,7 +21,8 @@ interface EmployeeStatus {
 }
 
 export function LiveActivity() {
-  const { users } = useAuth();
+  const { appUser } = useSupabaseAuth();
+  const users: { id: string; name: string; role: string }[] = appUser ? [{ id: appUser.id, name: appUser.fullName, role: appUser.role }] : [];
   const [refreshKey, setRefreshKey] = useState(0);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const dateStr = new Date().toISOString().split("T")[0];
@@ -40,7 +41,7 @@ export function LiveActivity() {
     const idleMs = settings.idleThresholdMinutes * 60 * 1000;
     const autoEndMs = settings.autoSessionEndMinutes * 60 * 1000;
 
-    const nonAdminUsers = users.filter(u => u.active && u.role !== "Admin");
+    const nonAdminUsers = users.filter(u => u.role !== "admin");
 
     return nonAdminUsers.map((user): EmployeeStatus => {
       const userLogs = logs.filter(l => l.userId === user.id && l.date === dateStr);
