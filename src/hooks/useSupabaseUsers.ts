@@ -7,7 +7,7 @@ export interface ManagedUser {
   userId: string;
   fullName: string;
   email: string;
-  role: "admin" | "user";
+  role: "admin" | "manager" | "viewer" | "user";
   isActive: boolean;
   createdAt: string;
 }
