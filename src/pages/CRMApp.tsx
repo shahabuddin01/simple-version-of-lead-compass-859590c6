@@ -28,6 +28,7 @@ import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { AnimatePresence } from "motion/react";
 import { Plus, Upload, Loader2, Trash2 } from "lucide-react";
+
 import { toast } from "sonner";
 
 // Adapter to convert Supabase leads to legacy Lead type for existing components
@@ -105,6 +106,13 @@ const CRMApp = () => {
   const [modal, setModal] = useState<{ type: "add" | "edit"; lead?: Lead } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null);
+  const [customFolders, setCustomFolders] = useState<string[]>([]);
+
+  // Merge DB-derived folders with locally created ones
+  const allFolders = useMemo(() => {
+    const set = new Set([...folders, ...customFolders]);
+    return [...set].sort();
+  }, [folders, customFolders]);
 
   // Convert to frontend format
   const leads = useMemo(() => supabaseLeads.map(toFrontendLead), [supabaseLeads]);
@@ -263,8 +271,8 @@ const CRMApp = () => {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={folders} duplicateCount={duplicateCount} onCreateFolder={(name) => {
-                  // Folder is created by assigning it — no separate table needed
+                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={allFolders} duplicateCount={duplicateCount} onCreateFolder={(name) => {
+                  setCustomFolders(prev => prev.includes(name) ? prev : [...prev, name]);
                   toast.success(`Folder "${name}" created`);
                 }} />
                 {isAdmin && duplicateCount > 0 && (filter as any).showDuplicatesOnly && (
@@ -301,7 +309,7 @@ const CRMApp = () => {
                     onAddToClientComm={() => {}}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
-                    folders={folders}
+                    folders={allFolders}
                     onMoveToFolder={async (folder: string) => {
                       await bulkMoveToFolder(selectedIds, folder);
                       setSelectedIds(new Set());
