@@ -94,6 +94,12 @@ export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, 
         onChange={(v) => setFilter({ ...filter, industry: v, company: v ? filter.company : null })} />
       <Dropdown label="Company" value={filter.company} options={companies}
         onChange={(v) => setFilter({ ...filter, company: v })} />
+      <FolderDropdown
+        value={filter.folder || null}
+        folders={folders}
+        onChange={(v) => setFilter({ ...filter, folder: v })}
+        onCreateFolder={onCreateFolder}
+      />
       <Dropdown label="Status" value={filter.status} options={statuses}
         onChange={(v) => setFilter({ ...filter, status: v as PipelineStatus | null })} />
       <Dropdown label="Work ESP" value={filter.workESP || null} options={espOptions}
