@@ -94,6 +94,7 @@ const CRMApp = () => {
     filter, setFilter, sortBy, setSortBy, stats, industries, companies,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
     bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
+    duplicateCount, removeDuplicates,
   } = useSupabaseLeads();
 
   const [view, setView] = useState<ViewMode>("dashboard");
