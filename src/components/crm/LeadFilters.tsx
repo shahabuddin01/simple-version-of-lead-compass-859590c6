@@ -60,7 +60,7 @@ function Dropdown({ label, value, options, onChange }: {
   );
 }
 
-export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, companies, duplicateCount = 0 }: LeadFiltersProps) {
+export function LeadFilters({ filter, setFilter, sortBy, setSortBy, industries, companies, folders, duplicateCount = 0, onCreateFolder }: LeadFiltersProps) {
   const activeFilter = filter.activeFilter || "all";
   const activeLabel = activeFilter === "active" ? "Active Leads" : activeFilter === "inactive" ? "Inactive Leads" : null;
   const [searchInput, setSearchInput] = useState(filter.search);
