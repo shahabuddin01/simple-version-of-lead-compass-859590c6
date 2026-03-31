@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import { PipelineStatus } from "@/types/lead";
-import { ChevronDown, CheckSquare, X, MailCheck, Trash2, MessageSquare } from "lucide-react";
+import { ChevronDown, CheckSquare, X, MailCheck, Trash2, MessageSquare, Folder } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "motion/react";
 
@@ -29,12 +29,16 @@ interface BulkActionBarProps {
   onAddToClientComm?: () => void;
   pageLeadCount?: number;
   totalLeads?: number;
+  folders?: string[];
+  onMoveToFolder?: (folder: string) => void;
 }
 
-export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, onAddToClientComm, pageLeadCount, totalLeads }: BulkActionBarProps) {
+export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, onAddToClientComm, pageLeadCount, totalLeads, folders = [], onMoveToFolder }: BulkActionBarProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [folderOpen, setFolderOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
   const [verifyTypes, setVerifyTypes] = useState<Set<"work" | "personal1" | "personal2">>(new Set(["work"]));
   const statusBtnRef = useRef<HTMLButtonElement>(null);
   const verifyBtnRef = useRef<HTMLButtonElement>(null);
@@ -151,6 +155,43 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
             Verify Emails <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
           {verifyDropdown}
+
+          {onMoveToFolder && (
+            <div className="relative">
+              <button
+                onClick={() => { setFolderOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); setDeleteOpen(false); }}
+                className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent">
+                <Folder className="h-3.5 w-3.5 text-muted-foreground" />
+                Move to Folder <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+              {folderOpen && (
+                <div className="absolute bottom-full mb-1 left-0 z-50 w-56 rounded-md border border-border bg-popover py-1 shadow-lg">
+                  {folders.map((f) => (
+                    <button key={f} onClick={() => { onMoveToFolder(f); setFolderOpen(false); }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent">
+                      <Folder className="h-3 w-3" /> {f}
+                    </button>
+                  ))}
+                  <div className="my-1 h-px bg-border" />
+                  <div className="px-3 py-1.5 space-y-1.5">
+                    <input
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && newFolderName.trim()) { onMoveToFolder(newFolderName.trim()); setNewFolderName(""); setFolderOpen(false); } }}
+                      placeholder="New folder name..."
+                      className="w-full rounded border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    <button
+                      onClick={() => { if (newFolderName.trim()) { onMoveToFolder(newFolderName.trim()); setNewFolderName(""); setFolderOpen(false); } }}
+                      disabled={!newFolderName.trim()}
+                      className="w-full rounded bg-primary px-2 py-1 text-xs text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                      Create & Move
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {onAddToClientComm && (
             <button onClick={onAddToClientComm}

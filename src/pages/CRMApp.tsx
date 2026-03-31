@@ -93,7 +93,7 @@ const CRMApp = () => {
     leads: supabaseLeads, filteredLeads: supabaseFilteredLeads, loading,
     filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
-    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, deleteAllLeads,
+    bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, bulkMoveToFolder, deleteAllLeads,
     duplicateCount, removeDuplicates,
   } = useSupabaseLeads();
 
@@ -263,7 +263,10 @@ const CRMApp = () => {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={folders} duplicateCount={duplicateCount} />
+                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={folders} duplicateCount={duplicateCount} onCreateFolder={(name) => {
+                  // Folder is created by assigning it — no separate table needed
+                  toast.success(`Folder "${name}" created`);
+                }} />
                 {isAdmin && duplicateCount > 0 && (filter as any).showDuplicatesOnly && (
                   <button
                     onClick={async () => {
@@ -298,6 +301,11 @@ const CRMApp = () => {
                     onAddToClientComm={() => {}}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
+                    folders={folders}
+                    onMoveToFolder={async (folder: string) => {
+                      await bulkMoveToFolder(selectedIds, folder);
+                      setSelectedIds(new Set());
+                    }}
                   />
                 )}
               </AnimatePresence>
