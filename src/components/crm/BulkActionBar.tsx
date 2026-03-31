@@ -33,7 +33,7 @@ interface BulkActionBarProps {
   onMoveToFolder?: (folder: string) => void;
 }
 
-export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, onAddToClientComm, pageLeadCount, totalLeads }: BulkActionBarProps) {
+export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInactive, onVerifyEmails, verifying, onClear, isAdmin, onDeleteSelected, onDeletePage, onDeleteByPages, onDeleteAll, onAddToClientComm, pageLeadCount, totalLeads, folders = [], onMoveToFolder }: BulkActionBarProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
