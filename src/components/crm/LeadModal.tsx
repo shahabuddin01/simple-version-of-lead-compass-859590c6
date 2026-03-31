@@ -142,7 +142,7 @@ export function LeadModal({ lead, existingTypes, existingCompanies, onSave, onCl
     phone: "", personalPhone1: "", personalPhone2: "",
     email: "", personalEmail: "", personalEmail2: "",
     linkedin: "", facebook: "", instagram: "",
-    status: "New" as PipelineStatus, active: true, notes: "",
+    status: "New" as PipelineStatus, active: true, notes: "", folder: "",
   });
   const [typeSuggestions, setTypeSuggestions] = useState(false);
   const [companySuggestions, setCompanySuggestions] = useState(false);
