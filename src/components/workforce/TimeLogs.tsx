@@ -95,7 +95,7 @@ export function TimeLogs() {
     return `${hr}${ampm}`;
   };
 
-  const nonAdminUsers = users.filter(u => u.role !== "Admin");
+  const nonAdminUsers = users.filter(u => u.role !== "admin");
 
   return (
     <div className="space-y-6">

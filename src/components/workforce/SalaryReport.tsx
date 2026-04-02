@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseUsers } from "@/hooks/useSupabaseUsers";
 import {
   getTimeSessions, getActivityLogs,
   getSalaryConfig, saveSalaryConfig, SalaryConfig,
@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { X, Download } from "lucide-react";
 
 export function SalaryReport() {
-  const { users } = useAuth();
+  const { users: supabaseUsers } = useSupabaseUsers();
+  const users = supabaseUsers.map(u => ({ id: u.userId, name: u.fullName, role: u.role, active: u.isActive }));
   const [config, setConfig] = useState<SalaryConfig>(getSalaryConfig);
   const [showConfig, setShowConfig] = useState(false);
   const [filterMonth, setFilterMonth] = useState(() => {
