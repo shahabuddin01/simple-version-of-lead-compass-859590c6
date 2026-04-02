@@ -25,7 +25,7 @@ export function SalaryReport() {
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
 
   const salaryData = useMemo(() => {
-    const nonAdminUsers = users.filter(u => u.role !== "Admin" && u.active);
+    const nonAdminUsers = users.filter(u => u.role !== "admin" && u.active);
     const [year, month] = filterMonth.split("-").map(Number);
     const prefix = `${year}-${String(month).padStart(2, "0")}`;
     const overtimeThreshold = wfSettings.overtimeAfterHours;
