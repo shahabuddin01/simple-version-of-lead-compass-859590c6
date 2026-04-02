@@ -165,7 +165,12 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
                 Move to Folder <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
               {folderOpen && (
-                <div className="absolute bottom-full mb-1 left-0 z-50 w-56 rounded-md border border-border bg-popover py-1 shadow-lg">
+                <div className="absolute bottom-full mb-1 left-0 z-50 w-56 rounded-md border border-border bg-popover py-1 shadow-lg max-h-64 overflow-y-auto">
+                  <button onClick={() => { onMoveToFolder(""); setFolderOpen(false); }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm font-medium text-muted-foreground hover:bg-accent">
+                    <Folder className="h-3 w-3" /> Remove from Folder
+                  </button>
+                  <div className="my-1 h-px bg-border" />
                   {folders.map((f) => (
                     <button key={f} onClick={() => { onMoveToFolder(f); setFolderOpen(false); }}
                       className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent">
