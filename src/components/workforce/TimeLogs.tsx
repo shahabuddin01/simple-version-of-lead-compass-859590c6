@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseUsers } from "@/hooks/useSupabaseUsers";
 import {
   getTimeSessions, getHourlyStats, getActivityLogs, getWorkforceSettings, isWorkingDay,
   calcProductivityScore, getScoreBadge, TimeSession,
@@ -7,7 +7,8 @@ import {
 import { X } from "lucide-react";
 
 export function TimeLogs() {
-  const { users } = useAuth();
+  const { users: supabaseUsers } = useSupabaseUsers();
+  const users = supabaseUsers.map(u => ({ id: u.userId, name: u.fullName, role: u.role }));
   const [filterUser, setFilterUser] = useState<string>("");
   const [filterRole, setFilterRole] = useState<string>("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
@@ -94,7 +95,7 @@ export function TimeLogs() {
     return `${hr}${ampm}`;
   };
 
-  const nonAdminUsers = users.filter(u => u.role !== "Admin");
+  const nonAdminUsers = users.filter(u => u.role !== "admin");
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseUsers } from "@/hooks/useSupabaseUsers";
 import {
   getTimeSessions, getActivityLogs,
   getSalaryConfig, saveSalaryConfig, SalaryConfig,
@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { X, Download } from "lucide-react";
 
 export function SalaryReport() {
-  const { users } = useAuth();
+  const { users: supabaseUsers } = useSupabaseUsers();
+  const users = supabaseUsers.map(u => ({ id: u.userId, name: u.fullName, role: u.role, active: u.isActive }));
   const [config, setConfig] = useState<SalaryConfig>(getSalaryConfig);
   const [showConfig, setShowConfig] = useState(false);
   const [filterMonth, setFilterMonth] = useState(() => {
@@ -24,7 +25,7 @@ export function SalaryReport() {
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
 
   const salaryData = useMemo(() => {
-    const nonAdminUsers = users.filter(u => u.role !== "Admin" && u.active);
+    const nonAdminUsers = users.filter(u => u.role !== "admin" && u.active);
     const [year, month] = filterMonth.split("-").map(Number);
     const prefix = `${year}-${String(month).padStart(2, "0")}`;
     const overtimeThreshold = wfSettings.overtimeAfterHours;

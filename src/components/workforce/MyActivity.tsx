@@ -1,12 +1,15 @@
 import { useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import {
   getActivityLogs, getTimeSessions, getHourlyStats,
   calcProductivityScore, getScoreBadge, getSalaryConfig,
 } from "@/hooks/useActivityTracker";
 
 export function MyActivity() {
-  const { currentUser } = useAuth();
+  const { appUser } = useSupabaseAuth();
+
+  const userId = appUser?.id || "";
+  const userRole = appUser?.role || "user";
 
   const dateStr = new Date().toISOString().split("T")[0];
   const monthPrefix = dateStr.slice(0, 7);
@@ -17,9 +20,9 @@ export function MyActivity() {
   const config = useMemo(() => getSalaryConfig(), []);
 
   // Today
-  const todayLogs = useMemo(() => logs.filter(l => l.userId === currentUser.id && l.date === dateStr), [logs, currentUser.id, dateStr]);
-  const todaySessions = useMemo(() => sessions.filter(s => s.userId === currentUser.id && s.date === dateStr), [sessions, currentUser.id, dateStr]);
-  const todayHourly = useMemo(() => hourly.filter(h => h.userId === currentUser.id && h.date === dateStr), [hourly, currentUser.id, dateStr]);
+  const todayLogs = useMemo(() => logs.filter(l => l.userId === userId && l.date === dateStr), [logs, userId, dateStr]);
+  const todaySessions = useMemo(() => sessions.filter(s => s.userId === userId && s.date === dateStr), [sessions, userId, dateStr]);
+  const todayHourly = useMemo(() => hourly.filter(h => h.userId === userId && h.date === dateStr), [hourly, userId, dateStr]);
 
   const todayClicks = todayHourly.reduce((s, h) => s + h.clicks, 0);
   const todayActions = todayLogs.filter(l => l.action !== "session_start" && l.action !== "session_end").length;
@@ -44,8 +47,8 @@ export function MyActivity() {
   const todayBadge = getScoreBadge(todayScore);
 
   // This month
-  const monthSessions = useMemo(() => sessions.filter(s => s.userId === currentUser.id && s.date.startsWith(monthPrefix)), [sessions, currentUser.id, monthPrefix]);
-  const monthLogs = useMemo(() => logs.filter(l => l.userId === currentUser.id && l.date.startsWith(monthPrefix)), [logs, currentUser.id, monthPrefix]);
+  const monthSessions = useMemo(() => sessions.filter(s => s.userId === userId && s.date.startsWith(monthPrefix)), [sessions, userId, monthPrefix]);
+  const monthLogs = useMemo(() => logs.filter(l => l.userId === userId && l.date.startsWith(monthPrefix)), [logs, userId, monthPrefix]);
 
   const workingDays = new Set(monthSessions.map(s => s.date)).size;
   let monthActiveMs = 0;
@@ -56,7 +59,6 @@ export function MyActivity() {
   });
 
   const monthActions = monthLogs.filter(l => l.action !== "session_start" && l.action !== "session_end").length;
-  const monthClicks = monthSessions.reduce((s, sess) => s + sess.totalClicks, 0);
   const mLeadsAdded = monthLogs.filter(l => l.action === "lead_added").length;
   const mLeadsEdited = monthLogs.filter(l => l.action === "lead_edited").length;
   let monthTotalMs = 0;
@@ -64,12 +66,12 @@ export function MyActivity() {
 
   const monthScore = calcProductivityScore(
     monthActiveMs / 60000, monthTotalMs / 60000,
-    monthActions, monthClicks,
+    monthActions, 0,
     mLeadsAdded + mLeadsEdited
   );
 
   const activeHours = monthActiveMs / 3600000;
-  const roleConfig = config.rates[currentUser.role] || { hourly: 0, monthlyBase: 0 };
+  const roleConfig = config.rates[userRole] || { hourly: 0, monthlyBase: 0 };
   const estimatedSalary = Math.round(
     config.calcMethod === "hourly_active" ? activeHours * roleConfig.hourly :
     config.calcMethod === "hourly_total" ? (monthTotalMs / 3600000) * roleConfig.hourly :
@@ -81,8 +83,6 @@ export function MyActivity() {
     .filter(l => l.action !== "session_start" && l.action !== "session_end")
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, 20);
-
-  if (!currentUser) return null;
 
   const fmtMs = (ms: number) => {
     const h = Math.floor(ms / 3600000);
