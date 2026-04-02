@@ -8,10 +8,8 @@ import {
 export function MyActivity() {
   const { appUser } = useSupabaseAuth();
 
-  if (!appUser) return null;
-
-  const userId = appUser.id;
-  const userRole = appUser.role;
+  const userId = appUser?.id || "";
+  const userRole = appUser?.role || "user";
 
   const dateStr = new Date().toISOString().split("T")[0];
   const monthPrefix = dateStr.slice(0, 7);
