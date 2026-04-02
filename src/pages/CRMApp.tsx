@@ -216,7 +216,7 @@ const CRMApp = () => {
         onMergeCompany={isAdmin ? () => 0 : undefined}
         showUserManagement={isAdmin}
         showWorkforce={isAdmin}
-        showMyActivity={!isAdmin}
+        showMyActivity={isAdmin}
         showEmailVerifier={isAdmin}
         showAPIIntegrations={isAdmin}
         showBackups={isAdmin}
