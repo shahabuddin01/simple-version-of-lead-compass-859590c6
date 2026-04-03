@@ -1,5 +1,4 @@
 import { cleanSocialUrl } from "@/lib/socialLinks";
-import type { MouseEvent } from "react";
 
 interface SocialLinkProps {
   url: string | null | undefined;
@@ -14,26 +13,19 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
 
   const cleanUrl = cleanSocialUrl(url, platform.toLowerCase());
 
-  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    // Fallback: manually open if the browser blocks the default anchor behavior
-    window.open(cleanUrl, "_blank", "noopener,noreferrer");
+    window.open(cleanUrl, "_blank");
   };
 
   return (
     <span
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex"
+      className="inline-flex cursor-pointer"
     >
-      <a
-        href={cleanUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        referrerPolicy="no-referrer"
-        onClick={handleClick}
-        title={`Open ${platform} profile`}
-      >
+      <a href={cleanUrl} target="_blank" onClick={handleClick} title={`Open ${platform} profile`}>
         {children}
       </a>
     </span>
