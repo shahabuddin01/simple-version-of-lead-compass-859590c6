@@ -16,10 +16,16 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
+    // Fallback: manually open if the browser blocks the default anchor behavior
+    window.open(cleanUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <span onMouseDown={(e) => e.stopPropagation()} className="inline-flex">
+    <span
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex"
+    >
       <a
         href={cleanUrl}
         target="_blank"
