@@ -1,9 +1,28 @@
+import { toast } from "sonner";
+
 import { cleanSocialUrl } from "@/lib/socialLinks";
 
 interface SocialLinkProps {
   url: string | null | undefined;
   platform: string;
   children: React.ReactNode;
+}
+
+async function copyTextToClipboard(value: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textArea = document.createElement("textarea");
+  textArea.value = value;
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textArea);
 }
 
 export function SocialLink({ url, platform, children }: SocialLinkProps) {
@@ -13,31 +32,30 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
 
   const cleanUrl = cleanSocialUrl(url, platform.toLowerCase());
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+
     try {
-      window.open(cleanUrl, "_blank");
+      await copyTextToClipboard(cleanUrl);
+      toast.success(`${platform} link copied`);
     } catch {
-      // Fallback: create a temporary link and click it
-      const a = document.createElement("a");
-      a.href = cleanUrl;
-      a.target = "_blank";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      toast.error(`Could not copy ${platform} link`);
     }
   };
 
   return (
-    <span
-      onMouseDown={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
-      className="inline-flex cursor-pointer"
-    >
-      <a href={cleanUrl} target="_blank" onClick={handleClick} title={`Open ${platform} profile`}>
+    <span onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} className="inline-flex">
+      <button
+        type="button"
+        onClick={handleClick}
+        title={`Copy ${platform} profile link`}
+        aria-label={`Copy ${platform} profile link`}
+        className="inline-flex"
+      >
         {children}
-      </a>
+      </button>
     </span>
   );
 }
+
