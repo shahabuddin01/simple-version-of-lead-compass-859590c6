@@ -16,9 +16,17 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Use window.top to escape iframe context in preview
-    const opener = window.top || window;
-    opener.open(cleanUrl, "_blank");
+    try {
+      window.open(cleanUrl, "_blank");
+    } catch {
+      // Fallback: create a temporary link and click it
+      const a = document.createElement("a");
+      a.href = cleanUrl;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   };
 
   return (
