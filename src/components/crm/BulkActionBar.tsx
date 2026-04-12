@@ -54,8 +54,10 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
-    const top = spaceBelow < 200 ? rect.top - 200 - 4 : rect.bottom + 4;
-    setter({ top, left: rect.left });
+    const dropdownHeight = 200;
+    const top = spaceBelow < dropdownHeight ? rect.top - dropdownHeight - 4 : rect.bottom + 4;
+    const left = Math.min(rect.left, window.innerWidth - 240);
+    setter({ top, left });
   }, []);
 
   useEffect(() => {
@@ -96,6 +98,8 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
     setVerifyOpen(false);
   };
 
+  const btnClass = "flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent whitespace-nowrap";
+
   const statusDropdown = statusOpen
     ? ReactDOM.createPortal(
         <div ref={statusDropRef} style={{ position: "fixed", top: statusPos.top, left: statusPos.left, zIndex: 99999, minWidth: 180 }}
@@ -133,26 +137,34 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
 
   return (
     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-visible">
-      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 px-4 py-2.5">
-        <div className="flex items-center gap-1.5 text-sm font-medium text-blue-700 dark:text-blue-300">
-          <CheckSquare className="h-4 w-4" />
-          {count} lead{count !== 1 ? "s" : ""} selected
+      <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 px-3 py-2.5 space-y-2">
+        {/* Top row: selection count + clear */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-700 dark:text-blue-300">
+            <CheckSquare className="h-4 w-4" />
+            {count} lead{count !== 1 ? "s" : ""} selected
+          </div>
+          <button onClick={onClear} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-background/60 transition-colors">
+            <X className="h-3.5 w-3.5" /> Clear
+          </button>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+
+        {/* Action buttons - wrapping */}
+        <div className="flex flex-wrap items-center gap-1.5">
           <button ref={statusBtnRef} onMouseDown={(e) => { e.stopPropagation(); updatePos(statusBtnRef, setStatusPos); setStatusOpen(v => !v); setVerifyOpen(false); }}
-            className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent">
-            Update Status <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            className={btnClass}>
+            Update Status <ChevronDown className="h-3 w-3 text-muted-foreground" />
           </button>
           {statusDropdown}
 
-          <button onClick={onMarkActive} className="rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent">Mark Active</button>
-          <button onClick={onMarkInactive} className="rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent">Mark Inactive</button>
+          <button onClick={onMarkActive} className={btnClass}>Active</button>
+          <button onClick={onMarkInactive} className={btnClass}>Inactive</button>
 
           <button ref={verifyBtnRef} disabled={verifying}
             onMouseDown={(e) => { e.stopPropagation(); updatePos(verifyBtnRef, setVerifyPos); setVerifyOpen(v => !v); setStatusOpen(false); }}
-            className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-50">
+            className={`${btnClass} disabled:opacity-50`}>
             <MailCheck className={`h-3.5 w-3.5 text-blue-500 ${verifying ? "animate-spin" : ""}`} />
-            Verify Emails <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            Verify <ChevronDown className="h-3 w-3 text-muted-foreground" />
           </button>
           {verifyDropdown}
 
@@ -160,9 +172,9 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
             <div className="relative">
               <button
                 onClick={() => { setFolderOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); setDeleteOpen(false); }}
-                className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent">
+                className={btnClass}>
                 <Folder className="h-3.5 w-3.5 text-muted-foreground" />
-                Move to Folder <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                Folder <ChevronDown className="h-3 w-3 text-muted-foreground" />
               </button>
               {folderOpen && (
                 <div className="absolute bottom-full mb-1 left-0 z-50 w-56 rounded-md border border-border bg-popover py-1 shadow-lg max-h-64 overflow-y-auto">
@@ -200,9 +212,9 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
 
           {onAddToClientComm && (
             <button onClick={onAddToClientComm}
-              className="flex items-center gap-1.5 rounded-md border border-purple-300 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-700 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-900/40">
+              className="flex items-center gap-1.5 rounded-md border border-purple-300 bg-purple-50 px-2.5 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-purple-700 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-900/40 whitespace-nowrap">
               <MessageSquare className="h-3.5 w-3.5" />
-              + Client Comm
+              Client Comm
             </button>
           )}
 
@@ -210,9 +222,9 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
             <>
               <button ref={deleteBtnRef}
                 onMouseDown={(e) => { e.stopPropagation(); updatePos(deleteBtnRef, setDeletePos); setDeleteOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); }}
-                className="flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20">
+                className="flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-2.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 whitespace-nowrap">
                 <Trash2 className="h-3.5 w-3.5" />
-                Delete <ChevronDown className="h-3.5 w-3.5" />
+                Delete <ChevronDown className="h-3 w-3" />
               </button>
               {deleteOpen && ReactDOM.createPortal(
                 <div ref={deleteDropRef} style={{ position: "fixed", top: deletePos.top, left: deletePos.left, zIndex: 99999, minWidth: 220 }}
@@ -246,10 +258,6 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
                 </div>, document.body)}
             </>
           )}
-
-          <button onClick={onClear} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <X className="h-3.5 w-3.5" /> Clear
-          </button>
         </div>
       </div>
     </motion.div>
