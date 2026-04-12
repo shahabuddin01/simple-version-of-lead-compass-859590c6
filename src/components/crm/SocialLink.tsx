@@ -13,19 +13,13 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
 
   const cleanUrl = cleanSocialUrl(url, platform.toLowerCase());
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.open(cleanUrl, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <span onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} className="inline-flex">
       <a
         href={cleanUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={handleClick}
+        onClick={(e) => e.stopPropagation()}
         title={`Open ${platform} profile`}
         aria-label={`Open ${platform} profile`}
         className="inline-flex"
