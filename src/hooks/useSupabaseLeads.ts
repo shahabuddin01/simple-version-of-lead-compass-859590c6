@@ -118,7 +118,15 @@ export const useSupabaseLeads = () => {
   const toggleActive = useCallback(async (id: string) => {
     const lead = leads.find(l => l.id === id);
     if (!lead) return;
-    await updateLead(id, { active: !lead.active });
+    const newActive = !lead.active;
+    const success = await updateLead(id, { active: newActive });
+    if (success) {
+      toast.success(
+        newActive
+          ? `"${lead.name}" moved to Active Leads`
+          : `"${lead.name}" moved to Inactive Leads`
+      );
+    }
   }, [leads, updateLead]);
 
   const bulkUpdateStatus = useCallback(async (ids: Set<string>, status: PipelineStatus) => {
