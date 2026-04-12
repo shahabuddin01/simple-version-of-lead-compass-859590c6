@@ -119,6 +119,8 @@ export const useSupabaseLeads = () => {
     const lead = leads.find(l => l.id === id);
     if (!lead) return;
     const newActive = !lead.active;
+    // Optimistic update
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, active: newActive } : l));
     const success = await updateLead(id, { active: newActive });
     if (success) {
       toast.success(
@@ -126,6 +128,9 @@ export const useSupabaseLeads = () => {
           ? `"${lead.name}" moved to Active Leads`
           : `"${lead.name}" moved to Inactive Leads`
       );
+    } else {
+      // Revert on failure
+      setLeads(prev => prev.map(l => l.id === id ? { ...l, active: lead.active } : l));
     }
   }, [leads, updateLead]);
 
