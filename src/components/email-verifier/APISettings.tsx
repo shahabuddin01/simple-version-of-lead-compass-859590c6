@@ -49,7 +49,13 @@ export function APISettings() {
     }
   }, []);
 
-  const effectiveKey = useDemo ? "API_KEY_FOR_TEST" : apiKey;
+  const trimmedApiKey = apiKey.trim();
+  const effectiveKey = useDemo ? "API_KEY_FOR_TEST" : trimmedApiKey;
+
+  const persistSettings = (nextApiKey: string, nextUseDemo: boolean) => {
+    saveMVSettings({ apiKey: nextApiKey.trim(), useDemo: nextUseDemo });
+    saveCacheSettings({ cacheEnabled, cacheDurationDays: 14 });
+  };
 
   const testConnection = async () => {
     if (!effectiveKey) { toast.error("Enter an API key first."); return; }
@@ -60,9 +66,11 @@ export function APISettings() {
         setStatus("invalid");
         toast.error("Invalid API key.");
       } else {
+        setApiKey(trimmedApiKey);
         setCredits(data);
         setStatus("connected");
-        toast.success("Connected successfully!");
+        persistSettings(trimmedApiKey, useDemo);
+        toast.success("Connected successfully! Settings saved.");
       }
     } catch {
       setStatus("invalid");
@@ -77,7 +85,11 @@ export function APISettings() {
     setLoading(true);
     try {
       const data = await getCredits(effectiveKey);
-      if (!data.error) { setCredits(data); toast.success("Balance refreshed."); }
+      if (!data.error) {
+        setCredits(data);
+        setStatus("connected");
+        toast.success("Balance refreshed.");
+      }
     } catch {
       toast.error("Failed to refresh balance.");
     } finally {
@@ -86,8 +98,8 @@ export function APISettings() {
   };
 
   const handleSave = () => {
-    saveMVSettings({ apiKey, useDemo });
-    saveCacheSettings({ cacheEnabled, cacheDurationDays: 14 });
+    setApiKey(trimmedApiKey);
+    persistSettings(trimmedApiKey, useDemo);
     toast.success("Settings saved.");
   };
 
