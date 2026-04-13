@@ -3,6 +3,7 @@ import { useSupabaseLeads, SupabaseLead, PipelineStatus, FilterState } from "@/h
 import { supabase } from "@/integrations/supabase/client";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { SupabaseUserMenu } from "@/components/auth/SupabaseUserMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
 import { DashboardView } from "@/components/crm/DashboardView";
 import { LeadTable } from "@/components/crm/LeadTable";
@@ -280,6 +281,7 @@ const CRMApp = () => {
                 </button>
               </>
             )}
+            <ThemeToggle />
             <SupabaseUserMenu />
           </div>
         </header>
