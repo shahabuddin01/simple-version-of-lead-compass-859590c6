@@ -27,7 +27,8 @@ import { MyActivity } from "@/components/workforce/MyActivity";
 
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { pageTransition } from "@/lib/animations";
 import { Plus, Upload, Loader2, Trash2 } from "lucide-react";
 
 import { toast } from "sonner";
