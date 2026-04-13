@@ -1,69 +1,40 @@
-import * as React from "react";
+import { MouseEvent } from "react";
 import { cleanSocialUrl } from "@/lib/socialLinks";
 
-interface SocialLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+interface SocialLinkProps {
   url: string | null | undefined;
   platform: string;
   children: React.ReactNode;
 }
 
-export const SocialLink = React.forwardRef<HTMLAnchorElement, SocialLinkProps>(
-  ({ url, platform, children, onClick, ...props }, ref) => {
-    if (!url || url.trim() === "") {
-      return <span className="text-xs text-muted-foreground">—</span>;
-    }
-
-    const cleanUrl = cleanSocialUrl(url, platform.toLowerCase());
-
-    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-      event.stopPropagation();
-      onClick?.(event);
-
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      const openedWindow = window.open(cleanUrl, "_blank", "noopener,noreferrer");
-
-      if (!openedWindow) {
-        window.location.assign(cleanUrl);
-      }
-    };
-
-    const stopPropagation = (
-      event: React.MouseEvent<HTMLAnchorElement> | React.PointerEvent<HTMLAnchorElement>
-    ) => {
-      event.stopPropagation();
-    };
-
-    return (
-      <a
-        {...props}
-        ref={ref}
-        href={cleanUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={`Open ${platform} profile`}
-        aria-label={`Open ${platform} profile`}
-        className="inline-flex [touch-action:manipulation]"
-        draggable={false}
-        onPointerDown={stopPropagation}
-        onMouseDown={stopPropagation}
-        onClick={handleClick}
-        onDragStart={(event) => event.preventDefault()}
-      >
-        {children}
-      </a>
-    );
+export function SocialLink({ url, platform, children }: SocialLinkProps) {
+  if (!url || url.trim() === "") {
+    return <span className="text-xs text-muted-foreground">—</span>;
   }
-);
 
-SocialLink.displayName = "SocialLink";
+  const cleanUrl = cleanSocialUrl(url, platform.toLowerCase());
+
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    const openedWindow = window.open(cleanUrl, "_blank", "noopener,noreferrer");
+
+    if (!openedWindow) {
+      window.location.href = cleanUrl;
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      title={`Open ${platform} profile`}
+      aria-label={`Open ${platform} profile`}
+      className="inline-flex items-center justify-center rounded-none border-0 bg-transparent p-0 text-inherit shadow-none [touch-action:manipulation]"
+      onPointerDown={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={handleClick}
+    >
+      {children}
+    </button>
+  );
+}
