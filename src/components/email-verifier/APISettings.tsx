@@ -32,6 +32,21 @@ export function APISettings() {
     const cs = loadCacheSettings();
     setCacheEnabled(cs.cacheEnabled);
     setCacheStats(getCacheStats());
+
+    // Auto-check connection if API key exists
+    const key = s.useDemo ? "API_KEY_FOR_TEST" : s.apiKey;
+    if (key) {
+      getCredits(key)
+        .then((data) => {
+          if (data.error) {
+            setStatus("invalid");
+          } else {
+            setCredits(data);
+            setStatus("connected");
+          }
+        })
+        .catch(() => setStatus("invalid"));
+    }
   }, []);
 
   const effectiveKey = useDemo ? "API_KEY_FOR_TEST" : apiKey;
