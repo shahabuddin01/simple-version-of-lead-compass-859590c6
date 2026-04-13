@@ -12,10 +12,15 @@ import {
 } from "@/lib/emailVerificationCache";
 
 export function APISettings() {
-  const [apiKey, setApiKey] = useState("");
+  type ConnectionStatus = "none" | "checking" | "connected" | "invalid";
+
+  const [apiKey, setApiKey] = useState(() => loadMVSettings().apiKey);
   const [showKey, setShowKey] = useState(false);
-  const [useDemo, setUseDemo] = useState(false);
-  const [status, setStatus] = useState<"none" | "connected" | "invalid">("none");
+  const [useDemo, setUseDemo] = useState(() => loadMVSettings().useDemo);
+  const [status, setStatus] = useState<ConnectionStatus>(() => {
+    const settings = loadMVSettings();
+    return settings.apiKey || settings.useDemo ? "checking" : "none";
+  });
   const [credits, setCredits] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,44 +30,77 @@ export function APISettings() {
   const [clearConfirmText, setClearConfirmText] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  const trimmedApiKey = apiKey.trim();
+  const effectiveKey = useDemo ? "API_KEY_FOR_TEST" : trimmedApiKey;
+
+  const persistSettings = (nextApiKey: string, nextUseDemo: boolean, nextCacheEnabled = cacheEnabled) => {
+    saveMVSettings({ apiKey: nextApiKey.trim(), useDemo: nextUseDemo });
+    saveCacheSettings({ cacheEnabled: nextCacheEnabled, cacheDurationDays: 14 });
+  };
+
   useEffect(() => {
-    const s = loadMVSettings();
-    setApiKey(s.apiKey);
-    setUseDemo(s.useDemo);
     const cs = loadCacheSettings();
     setCacheEnabled(cs.cacheEnabled);
     setCacheStats(getCacheStats());
 
-    // Auto-check connection if API key exists
-    const key = s.useDemo ? "API_KEY_FOR_TEST" : s.apiKey;
-    if (key) {
-      getCredits(key)
-        .then((data) => {
-          if (data.error) {
-            setStatus("invalid");
-          } else {
-            setCredits(data);
-            setStatus("connected");
-          }
-        })
-        .catch(() => setStatus("invalid"));
+    if (!effectiveKey) {
+      setStatus("none");
+      return;
     }
+
+    let cancelled = false;
+    setStatus("checking");
+
+    getCredits(effectiveKey)
+      .then((data) => {
+        if (cancelled) return;
+        if (data.error) {
+          setCredits(null);
+          setStatus("invalid");
+          return;
+        }
+        setCredits(data);
+        setStatus("connected");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCredits(null);
+        setStatus("invalid");
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const trimmedApiKey = apiKey.trim();
-  const effectiveKey = useDemo ? "API_KEY_FOR_TEST" : trimmedApiKey;
+  const handleApiKeyChange = (value: string) => {
+    setApiKey(value);
+    persistSettings(value, useDemo);
 
-  const persistSettings = (nextApiKey: string, nextUseDemo: boolean) => {
-    saveMVSettings({ apiKey: nextApiKey.trim(), useDemo: nextUseDemo });
-    saveCacheSettings({ cacheEnabled, cacheDurationDays: 14 });
+    if (!value.trim() && !useDemo) {
+      setCredits(null);
+      setStatus("none");
+    }
+  };
+
+  const handleUseDemoChange = (checked: boolean) => {
+    setUseDemo(checked);
+    persistSettings(apiKey, checked);
+
+    if (!checked && !trimmedApiKey) {
+      setCredits(null);
+      setStatus("none");
+    }
   };
 
   const testConnection = async () => {
     if (!effectiveKey) { toast.error("Enter an API key first."); return; }
     setLoading(true);
+    setStatus("checking");
     try {
       const data = await getCredits(effectiveKey);
       if (data.error) {
+        setCredits(null);
         setStatus("invalid");
         toast.error("Invalid API key.");
       } else {
@@ -73,6 +111,7 @@ export function APISettings() {
         toast.success("Connected successfully! Settings saved.");
       }
     } catch {
+      setCredits(null);
       setStatus("invalid");
       toast.error("Connection failed. This may be a CORS issue — try using a server-side proxy.");
     } finally {
