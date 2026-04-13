@@ -281,7 +281,7 @@ const CRMApp = () => {
                 </button>
               </>
             )}
-            <ThemeToggle />
+            
             <SupabaseUserMenu />
           </div>
         </header>
