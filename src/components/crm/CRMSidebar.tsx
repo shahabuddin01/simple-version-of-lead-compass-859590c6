@@ -352,13 +352,25 @@ export function CRMSidebar({
           const activeFilter = targetView === "active" ? "active" : targetView === "inactive" ? "inactive" : "all";
           setFilter({ industry: null, company: null, status: null, search: "", activeFilter });
         }}
-        className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+        className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
           isActive
             ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         }`}
       >
-        {isActive && <div className="absolute left-0 h-5 w-0.5 rounded-full bg-primary" />}
+        <AnimatePresence>
+          {isActive && (
+            <motion.div
+              layoutId="sidebar-active-indicator"
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary"
+              initial={{ opacity: 0, scaleY: 0 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              exit={{ opacity: 0, scaleY: 0 }}
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              style={{ boxShadow: "0 0 8px hsl(var(--primary) / 0.5)" }}
+            />
+          )}
+        </AnimatePresence>
         {icon}
         <span className="flex-1 text-left">{label}</span>
         {count > 0 && <span className="tabular-nums text-xs text-muted-foreground">{count}</span>}
