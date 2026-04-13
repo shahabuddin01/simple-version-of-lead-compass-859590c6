@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSupabaseLeads, SupabaseLead, PipelineStatus, FilterState } from "@/hooks/useSupabaseLeads";
+import { supabase } from "@/integrations/supabase/client";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { SupabaseUserMenu } from "@/components/auth/SupabaseUserMenu";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
@@ -95,7 +96,7 @@ const CRMApp = () => {
     filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
     bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, bulkMoveToFolder, deleteAllLeads,
-    duplicateCount, removeDuplicates,
+    duplicateCount, removeDuplicates, fetchLeads,
   } = useSupabaseLeads();
 
   const [view, setView] = useState<ViewMode>("dashboard");
