@@ -373,6 +373,8 @@ const CRMApp = () => {
               />
             </div>
           )}
+          </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 
