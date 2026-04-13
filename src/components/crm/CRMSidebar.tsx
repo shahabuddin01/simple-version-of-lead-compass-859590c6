@@ -372,7 +372,8 @@ export function CRMSidebar({
     <>
       <aside className="flex h-screen w-72 flex-col border-r border-border bg-sidebar">
         <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-          <img src={logoSrc} alt="NH Production House" className="h-10 w-auto object-contain" />
+          <img src={logoSrc} alt="NASIR HUSSAIN" className="h-10 w-auto object-contain" />
+          <span className="text-sm font-bold tracking-wide text-foreground">NASIR HUSSAIN</span>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
