@@ -358,19 +358,9 @@ export function CRMSidebar({
             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         }`}
       >
-        <AnimatePresence>
-          {isActive && (
-            <motion.div
-              layoutId="sidebar-active-indicator"
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary"
-              initial={{ opacity: 0, scaleY: 0 }}
-              animate={{ opacity: 1, scaleY: 1 }}
-              exit={{ opacity: 0, scaleY: 0 }}
-              transition={{ type: "spring", stiffness: 350, damping: 30 }}
-              style={{ boxShadow: "0 0 8px hsl(var(--primary) / 0.5)" }}
-            />
-          )}
-        </AnimatePresence>
+        {isActive && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary" />
+        )}
         {icon}
         <span className="flex-1 text-left">{label}</span>
         {count > 0 && <span className="tabular-nums text-xs text-muted-foreground">{count}</span>}
