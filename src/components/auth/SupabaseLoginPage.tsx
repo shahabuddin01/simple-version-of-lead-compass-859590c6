@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { motion } from "motion/react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export function SupabaseLoginPage() {
@@ -22,7 +23,12 @@ export function SupabaseLoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-sm space-y-6"
+      >
         <div className="flex flex-col items-center gap-2">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
@@ -73,7 +79,7 @@ export function SupabaseLoginPage() {
             {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in...</> : "Sign In"}
           </button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { FilterState, PipelineStatus } from "@/types/lead";
 import { Search, ChevronDown, Copy, FolderPlus, Folder } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { motion } from "motion/react";
 
 interface LeadFiltersProps {
   filter: FilterState;
@@ -160,7 +161,12 @@ export function LeadFilters({ filter, setFilter, industries, companies, folders,
   }, [filter.search]);
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+      className="flex flex-wrap items-center gap-3"
+    >
       <div className="relative flex-1 min-w-[200px] max-w-xs">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
@@ -203,6 +209,6 @@ export function LeadFilters({ filter, setFilter, industries, companies, folders,
         <Copy className="h-3.5 w-3.5" />
         Duplicates{duplicateCount > 0 ? ` (${duplicateCount})` : ""}
       </button>
-    </div>
+    </motion.div>
   );
 }

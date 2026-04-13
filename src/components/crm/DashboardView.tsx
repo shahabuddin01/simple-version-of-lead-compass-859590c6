@@ -1,5 +1,7 @@
 import { PipelineStatus } from "@/types/lead";
 import { getStatusStyle } from "@/lib/leadUtils";
+import { motion } from "motion/react";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 import { Users, UserCheck, UserX, GitBranch } from "lucide-react";
 
 interface DashboardViewProps {
@@ -24,13 +26,18 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
   const total = Math.max(stats.total, 1);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
+      className="space-y-6"
+    >
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => {
           const Icon = m.icon;
           return (
-            <div key={m.label} className="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
+            <motion.div key={m.label} variants={staggerItem} className="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${m.accent}`}>
                 <Icon className="h-5 w-5" />
               </div>
@@ -38,12 +45,12 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
                 <p className="text-xs font-medium text-muted-foreground">{m.label}</p>
                 <p className="mt-0.5 text-2xl font-bold tabular-nums text-foreground">{m.value}</p>
               </div>
-            </div>
+            </motion.div>
           );
         })}
 
         {/* Pipeline Status Card */}
-        <div className="rounded-xl border border-border bg-card p-5">
+        <motion.div variants={staggerItem} className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-accent-foreground">
               <GitBranch className="h-4 w-4" />
@@ -60,9 +67,11 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
                     {s}
                   </span>
                   <div className="relative h-2 flex-1 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="absolute inset-y-0 left-0 rounded-full bg-primary/60 transition-all"
-                      style={{ width: `${pct}%` }}
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-y-0 left-0 rounded-full bg-primary/60"
                     />
                   </div>
                   <span className="w-8 text-right tabular-nums text-xs font-semibold text-foreground">{count}</span>
@@ -70,11 +79,11 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Industry Breakdown */}
-      <div className="rounded-xl border border-border bg-card">
+      <motion.div variants={staggerItem} className="rounded-xl border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
           <h2 className="text-sm font-semibold tracking-tight">Industry Breakdown</h2>
         </div>
@@ -100,7 +109,7 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
             ))}
           </tbody>
         </table>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

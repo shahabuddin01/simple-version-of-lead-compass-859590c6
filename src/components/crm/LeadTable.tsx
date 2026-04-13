@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback, memo } from "react";
+import { motion } from "motion/react";
 import { Lead } from "@/types/lead";
 import { getStatusStyle, getInitials, getAvatarColor, getIndustryColor } from "@/lib/leadUtils";
 import { getQualityDisplay, getESP } from "@/lib/emailVerifier";
@@ -197,7 +198,12 @@ export function LeadTable({ leads, onToggleActive, onEdit, onDelete, canEditLead
 
 
   return (
-    <div className="space-y-3">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+      className="space-y-3"
+    >
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -280,6 +286,6 @@ export function LeadTable({ leads, onToggleActive, onEdit, onDelete, canEditLead
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
