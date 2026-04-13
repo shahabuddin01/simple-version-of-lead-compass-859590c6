@@ -1,5 +1,7 @@
 import { PipelineStatus } from "@/types/lead";
 import { getStatusStyle } from "@/lib/leadUtils";
+import { motion } from "motion/react";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 import { Users, UserCheck, UserX, GitBranch } from "lucide-react";
 
 interface DashboardViewProps {
@@ -24,13 +26,18 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
   const total = Math.max(stats.total, 1);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
+      className="space-y-6"
+    >
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => {
           const Icon = m.icon;
           return (
-            <div key={m.label} className="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
+            <motion.div key={m.label} variants={staggerItem} className="rounded-xl border border-border bg-card p-5 flex items-center gap-4">
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${m.accent}`}>
                 <Icon className="h-5 w-5" />
               </div>
@@ -43,11 +50,11 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
         })}
 
         {/* Pipeline Status Card */}
-        <div className="rounded-xl border border-border bg-card p-5">
+        <motion.div variants={staggerItem} className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-accent-foreground">
               <GitBranch className="h-4 w-4" />
-            </div>
+            </motion.div>
             <p className="text-xs font-medium text-muted-foreground">Pipeline Status</p>
           </div>
           <div className="space-y-2">
@@ -77,7 +84,7 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
       <div className="rounded-xl border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
           <h2 className="text-sm font-semibold tracking-tight">Industry Breakdown</h2>
-        </div>
+        </motion.div>
         <table className="w-full">
           <thead>
             <tr className="border-b border-border text-left">
