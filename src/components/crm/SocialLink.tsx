@@ -16,12 +16,7 @@ export function SocialLink({ url, platform, children }: SocialLinkProps) {
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-
-    const openedWindow = window.open(cleanUrl, "_blank", "noopener,noreferrer");
-
-    if (!openedWindow) {
-      window.location.href = cleanUrl;
-    }
+    window.open(cleanUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
