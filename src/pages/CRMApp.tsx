@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSupabaseLeads, SupabaseLead, PipelineStatus, FilterState } from "@/hooks/useSupabaseLeads";
+import { supabase } from "@/integrations/supabase/client";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { SupabaseUserMenu } from "@/components/auth/SupabaseUserMenu";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
@@ -95,7 +96,7 @@ const CRMApp = () => {
     filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
     addLead, updateLead, deleteLead, toggleActive, importLeads,
     bulkUpdateStatus, bulkSetActive, bulkDeleteLeads, bulkMoveToFolder, deleteAllLeads,
-    duplicateCount, removeDuplicates,
+    duplicateCount, removeDuplicates, fetchLeads,
   } = useSupabaseLeads();
 
   const [view, setView] = useState<ViewMode>("dashboard");
@@ -163,14 +164,55 @@ const CRMApp = () => {
     setFilter({ industry: null, company: null, status: null, search: "" });
   };
 
-  const handleBulkDelete = async (mode: "selected" | "page" | "pages" | "all") => {
+  const handleBulkDelete = async (mode: "selected" | "page" | "pages" | "all", pages?: number[]) => {
     if (mode === "selected") {
       await bulkDeleteLeads(selectedIds);
       setSelectedIds(new Set());
+      setBulkDeleteMode(null);
+    } else if (mode === "page") {
+      const pageIds = new Set(pageLeads.map(l => l.id));
+      setDeleteProgress({ running: true, current: 0, total: pageIds.size, step: "Deleting current page leads...", done: false, deletedCount: 0 });
+      await bulkDeleteLeads(pageIds);
+      setSelectedIds(new Set());
+      setDeleteProgress({ running: false, current: pageIds.size, total: pageIds.size, step: "Done", done: true, deletedCount: pageIds.size });
+    } else if (mode === "pages" && pages && pages.length > 0) {
+      // Collect lead IDs from selected pages
+      const idsToDelete: string[] = [];
+      for (const page of pages) {
+        const start = (page - 1) * LEADS_PER_PAGE;
+        const end = start + LEADS_PER_PAGE;
+        const pageSlice = filteredLeads.slice(start, end);
+        pageSlice.forEach(l => idsToDelete.push(l.id));
+      }
+      const totalToDelete = idsToDelete.length;
+      setDeleteProgress({ running: true, current: 0, total: totalToDelete, step: `Deleting leads from ${pages.length} page(s)...`, done: false, deletedCount: 0 });
+
+      // Delete in batches of 100
+      const batchSize = 100;
+      let deleted = 0;
+      for (let i = 0; i < idsToDelete.length; i += batchSize) {
+        const batch = idsToDelete.slice(i, i + batchSize);
+        const batchSet = new Set(batch);
+        const { error } = await supabase.from("leads").delete().in("id", batch);
+        if (error) {
+          toast.error("Failed to delete batch: " + error.message);
+          setDeleteProgress(null);
+          setBulkDeleteMode(null);
+          return;
+        }
+        deleted += batch.length;
+        setDeleteProgress({ running: true, current: deleted, total: totalToDelete, step: `Deleted ${deleted} of ${totalToDelete} leads...`, done: false, deletedCount: deleted });
+      }
+
+      setSelectedIds(new Set());
+      await fetchLeads();
+      setDeleteProgress({ running: false, current: totalToDelete, total: totalToDelete, step: "Done", done: true, deletedCount: totalToDelete });
+      toast.success(`${totalToDelete} leads deleted from ${pages.length} page(s)`);
     } else if (mode === "all") {
+      setDeleteProgress({ running: true, current: 0, total: leads.length, step: "Deleting all leads...", done: false, deletedCount: 0 });
       await deleteAllLeads();
+      setDeleteProgress({ running: false, current: leads.length, total: leads.length, step: "Done", done: true, deletedCount: leads.length });
     }
-    setBulkDeleteMode(null);
   };
 
   const LEADS_PER_PAGE = 50;
