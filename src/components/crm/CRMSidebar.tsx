@@ -15,6 +15,8 @@ function CollapsedPopover({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     if (!open) return;
@@ -25,19 +27,37 @@ function CollapsedPopover({
     return () => document.removeEventListener("mousedown", handle);
   }, [open]);
 
+  // Position the popover next to the icon, ensuring it stays within viewport
+  useEffect(() => {
+    if (!open || !btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const top = rect.top;
+    const left = rect.right + 8;
+    const maxTop = window.innerHeight - 200;
+    setPopoverStyle({
+      position: "fixed",
+      top: Math.min(top, maxTop),
+      left,
+      zIndex: 200,
+    });
+  }, [open]);
+
   return (
     <div ref={ref} className="relative">
       <Tooltip>
         <TooltipTrigger asChild>
           <button
+            ref={btnRef}
             onClick={() => setOpen(!open)}
-            className={`relative flex w-full items-center justify-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${
-              isActive
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`relative flex w-full items-center justify-center rounded-lg px-2 py-2.5 text-sm font-medium transition-all duration-150 ${
+              open
+                ? "bg-accent text-accent-foreground shadow-sm"
+                : isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             }`}
           >
-            {isActive && (
+            {isActive && !open && (
               <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary" />
             )}
             {icon}
@@ -48,13 +68,17 @@ function CollapsedPopover({
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, x: -8, scale: 0.95 }}
+            initial={{ opacity: 0, x: -6, scale: 0.92 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -8, scale: 0.95 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute left-full top-0 ml-2 z-[100] min-w-[180px] rounded-lg border border-border bg-popover p-1.5 shadow-xl"
+            exit={{ opacity: 0, x: -6, scale: 0.92 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            style={popoverStyle}
+            className="min-w-[200px] rounded-xl border border-border bg-popover/95 backdrop-blur-md p-2 shadow-2xl ring-1 ring-black/5"
           >
-            <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <div className="flex items-center gap-2 px-2.5 pt-1 pb-2 border-b border-border/50 mb-1.5">
+              <span className="text-muted-foreground">{icon}</span>
+              <p className="text-xs font-semibold text-foreground">{label}</p>
+            </div>
             <div className="space-y-0.5">
               {children}
             </div>
