@@ -374,7 +374,7 @@ export function CRMSidebar({
 
   const navItem = (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => {
     const isActive = view === targetView;
-    return (
+    const btn = (
       <button
         key={label}
         onClick={() => {
@@ -382,7 +382,7 @@ export function CRMSidebar({
           const activeFilter = targetView === "active" ? "active" : targetView === "inactive" ? "inactive" : "all";
           setFilter({ industry: null, company: null, status: null, search: "", activeFilter });
         }}
-        className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+        className={`relative flex w-full items-center ${collapsed ? "justify-center" : "gap-3"} rounded-md ${collapsed ? "px-2" : "px-3"} py-2 text-sm font-medium transition-colors ${
           isActive
             ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -391,11 +391,20 @@ export function CRMSidebar({
         {isActive && (
           <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary" />
         )}
-        {icon}
-        <span className="flex-1 text-left">{label}</span>
-        {count > 0 && <span className="tabular-nums text-xs text-muted-foreground">{count}</span>}
+        <span className="shrink-0">{icon}</span>
+        {!collapsed && <span className="flex-1 text-left">{label}</span>}
+        {!collapsed && count > 0 && <span className="tabular-nums text-xs text-muted-foreground">{count}</span>}
       </button>
     );
+    if (collapsed) {
+      return (
+        <Tooltip key={label}>
+          <TooltipTrigger asChild>{btn}</TooltipTrigger>
+          <TooltipContent side="right" className="text-xs">{label}{count > 0 ? ` (${count})` : ""}</TooltipContent>
+        </Tooltip>
+      );
+    }
+    return btn;
   };
 
   const isDeleteValid = deleteInput === "DELETE";
