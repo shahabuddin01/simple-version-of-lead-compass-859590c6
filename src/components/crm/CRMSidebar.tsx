@@ -520,11 +520,11 @@ export function CRMSidebar({
           )}
 
           {showWorkforce && (
-            <WorkforceDropdown view={view} navItem={navItem} collapsed={collapsed} />
+            <WorkforceDropdown view={view} navItem={navItem} collapsed={collapsed} setView={setView} setFilter={setFilter} />
           )}
 
           {showEmailVerifier && (
-            <EmailVerifierDropdown view={view} navItem={navItem} collapsed={collapsed} />
+            <EmailVerifierDropdown view={view} navItem={navItem} collapsed={collapsed} setView={setView} setFilter={setFilter} />
           )}
 
           {showAPIIntegrations && (
