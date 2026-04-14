@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import logoSrc from "@/assets/logo.png";
 import { ChevronRight, ChevronLeft, Menu, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare } from "lucide-react";
 import { Lead, ViewMode } from "@/types/lead";
@@ -7,8 +7,66 @@ import { motion, AnimatePresence } from "motion/react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Popover menu for collapsed sidebar groups
+function CollapsedPopover({ 
+  icon, label, isActive, children 
+}: { 
+  icon: React.ReactNode; label: string; isActive: boolean; children: React.ReactNode 
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => setOpen(!open)}
+            className={`relative flex w-full items-center justify-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            {isActive && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary" />
+            )}
+            {icon}
+          </button>
+        </TooltipTrigger>
+        {!open && <TooltipContent side="right" className="text-xs">{label}</TooltipContent>}
+      </Tooltip>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, x: -8, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -8, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute left-full top-0 ml-2 z-[100] min-w-[180px] rounded-lg border border-border bg-popover p-1.5 shadow-xl"
+          >
+            <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <div className="space-y-0.5">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // Workforce collapsible dropdown - extracted as separate component for proper hooks usage
-function WorkforceDropdown({ view, navItem, collapsed }: { view: ViewMode; collapsed?: boolean; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
+function WorkforceDropdown({ view, navItem, collapsed, setView, setFilter }: { view: ViewMode; collapsed?: boolean; setView: (v: ViewMode) => void; setFilter: (f: any) => void; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
   const workforceViews: ViewMode[] = ["workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings"];
   const isWorkforceActive = workforceViews.includes(view);
   const [wfOpen, setWfOpen] = useState(() => {
@@ -19,14 +77,32 @@ function WorkforceDropdown({ view, navItem, collapsed }: { view: ViewMode; colla
     setWfOpen(next);
     try { sessionStorage.setItem("ns_wf_open", next ? "1" : "0"); } catch {}
   };
+  const popoverItem = (label: string, icon: React.ReactNode, targetView: ViewMode) => {
+    const active = view === targetView;
+    return (
+      <button
+        key={label}
+        onClick={() => { setView(targetView); setFilter({ industry: null, company: null, status: null, search: "" }); }}
+        className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
+          active ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
+        }`}
+      >
+        {icon}
+        <span>{label}</span>
+      </button>
+    );
+  };
+
   if (collapsed) {
     return (
       <>
         <div className="my-3 h-px bg-border" />
-        {navItem("Live Activity", <Activity className="h-4 w-4" />, "workforce-live", 0)}
-        {navItem("Time Logs", <Clock className="h-4 w-4" />, "workforce-timelogs", 0)}
-        {navItem("Salary Report", <DollarSign className="h-4 w-4" />, "workforce-salary", 0)}
-        {navItem("WF Settings", <Wrench className="h-4 w-4" />, "workforce-settings", 0)}
+        <CollapsedPopover icon={<Users className="h-4 w-4" />} label="Workforce" isActive={isWorkforceActive}>
+          {popoverItem("Live Activity", <Activity className="h-4 w-4" />, "workforce-live")}
+          {popoverItem("Time Logs", <Clock className="h-4 w-4" />, "workforce-timelogs")}
+          {popoverItem("Salary Report", <DollarSign className="h-4 w-4" />, "workforce-salary")}
+          {popoverItem("Settings", <Wrench className="h-4 w-4" />, "workforce-settings")}
+        </CollapsedPopover>
       </>
     );
   }
@@ -66,7 +142,7 @@ function WorkforceDropdown({ view, navItem, collapsed }: { view: ViewMode; colla
 }
 
 // Email Verifier collapsible dropdown
-function EmailVerifierDropdown({ view, navItem, collapsed }: { view: ViewMode; collapsed?: boolean; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
+function EmailVerifierDropdown({ view, navItem, collapsed, setView, setFilter }: { view: ViewMode; collapsed?: boolean; setView: (v: ViewMode) => void; setFilter: (f: any) => void; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
   const evViews: ViewMode[] = ["ev-report", "ev-settings"];
   const isEVActive = evViews.includes(view);
   const [evOpen, setEvOpen] = useState(() => {
@@ -77,12 +153,30 @@ function EmailVerifierDropdown({ view, navItem, collapsed }: { view: ViewMode; c
     setEvOpen(next);
     try { sessionStorage.setItem("ns_ev_open", next ? "1" : "0"); } catch {}
   };
+  const popoverItem = (label: string, icon: React.ReactNode, targetView: ViewMode) => {
+    const active = view === targetView;
+    return (
+      <button
+        key={label}
+        onClick={() => { setView(targetView); setFilter({ industry: null, company: null, status: null, search: "" }); }}
+        className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
+          active ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
+        }`}
+      >
+        {icon}
+        <span>{label}</span>
+      </button>
+    );
+  };
+
   if (collapsed) {
     return (
       <>
         <div className="my-3 h-px bg-border" />
-        {navItem("Verification Report", <BarChart2 className="h-4 w-4" />, "ev-report", 0)}
-        {navItem("API Settings", <Settings className="h-4 w-4" />, "ev-settings", 0)}
+        <CollapsedPopover icon={<Mail className="h-4 w-4" />} label="Email Verifier" isActive={isEVActive}>
+          {popoverItem("Verification Report", <BarChart2 className="h-4 w-4" />, "ev-report")}
+          {popoverItem("API Settings", <Settings className="h-4 w-4" />, "ev-settings")}
+        </CollapsedPopover>
       </>
     );
   }
@@ -462,11 +556,11 @@ export function CRMSidebar({
           )}
 
           {showWorkforce && (
-            <WorkforceDropdown view={view} navItem={navItem} collapsed={collapsed} />
+            <WorkforceDropdown view={view} navItem={navItem} collapsed={collapsed} setView={setView} setFilter={setFilter} />
           )}
 
           {showEmailVerifier && (
-            <EmailVerifierDropdown view={view} navItem={navItem} collapsed={collapsed} />
+            <EmailVerifierDropdown view={view} navItem={navItem} collapsed={collapsed} setView={setView} setFilter={setFilter} />
           )}
 
           {showAPIIntegrations && (
