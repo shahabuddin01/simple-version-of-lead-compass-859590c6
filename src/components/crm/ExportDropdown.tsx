@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 interface ExportDropdownProps {
   leads: Lead[];
   currentPageLeads?: Lead[];
+  onExportDone?: () => void;
 }
 
 const exportPhoneCSV = (data: Lead[], type: "work" | "personal1" | "personal2") => {
