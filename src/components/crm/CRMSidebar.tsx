@@ -77,14 +77,32 @@ function WorkforceDropdown({ view, navItem, collapsed, setView, setFilter }: { v
     setWfOpen(next);
     try { sessionStorage.setItem("ns_wf_open", next ? "1" : "0"); } catch {}
   };
+  const popoverItem = (label: string, icon: React.ReactNode, targetView: ViewMode) => {
+    const active = view === targetView;
+    return (
+      <button
+        key={label}
+        onClick={() => { setView(targetView); setFilter({ industry: null, company: null, status: null, search: "" }); }}
+        className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
+          active ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
+        }`}
+      >
+        {icon}
+        <span>{label}</span>
+      </button>
+    );
+  };
+
   if (collapsed) {
     return (
       <>
         <div className="my-3 h-px bg-border" />
-        {navItem("Live Activity", <Activity className="h-4 w-4" />, "workforce-live", 0)}
-        {navItem("Time Logs", <Clock className="h-4 w-4" />, "workforce-timelogs", 0)}
-        {navItem("Salary Report", <DollarSign className="h-4 w-4" />, "workforce-salary", 0)}
-        {navItem("WF Settings", <Wrench className="h-4 w-4" />, "workforce-settings", 0)}
+        <CollapsedPopover icon={<Users className="h-4 w-4" />} label="Workforce" isActive={isWorkforceActive}>
+          {popoverItem("Live Activity", <Activity className="h-4 w-4" />, "workforce-live")}
+          {popoverItem("Time Logs", <Clock className="h-4 w-4" />, "workforce-timelogs")}
+          {popoverItem("Salary Report", <DollarSign className="h-4 w-4" />, "workforce-salary")}
+          {popoverItem("Settings", <Wrench className="h-4 w-4" />, "workforce-settings")}
+        </CollapsedPopover>
       </>
     );
   }
