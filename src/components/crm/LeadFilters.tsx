@@ -1,5 +1,8 @@
 import { FilterState, PipelineStatus } from "@/types/lead";
-import { Search, ChevronDown, Copy, FolderPlus, Folder } from "lucide-react";
+import { Search, ChevronDown, Copy, FolderPlus, Folder, SlidersHorizontal, X } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 
