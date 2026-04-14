@@ -124,7 +124,7 @@ function WorkforceDropdown({ view, navItem, collapsed, setView, setFilter }: { v
 }
 
 // Email Verifier collapsible dropdown
-function EmailVerifierDropdown({ view, navItem, collapsed }: { view: ViewMode; collapsed?: boolean; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
+function EmailVerifierDropdown({ view, navItem, collapsed, setView, setFilter }: { view: ViewMode; collapsed?: boolean; setView: (v: ViewMode) => void; setFilter: (f: any) => void; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
   const evViews: ViewMode[] = ["ev-report", "ev-settings"];
   const isEVActive = evViews.includes(view);
   const [evOpen, setEvOpen] = useState(() => {
