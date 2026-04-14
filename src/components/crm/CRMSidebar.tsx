@@ -153,12 +153,30 @@ function EmailVerifierDropdown({ view, navItem, collapsed, setView, setFilter }:
     setEvOpen(next);
     try { sessionStorage.setItem("ns_ev_open", next ? "1" : "0"); } catch {}
   };
+  const popoverItem = (label: string, icon: React.ReactNode, targetView: ViewMode) => {
+    const active = view === targetView;
+    return (
+      <button
+        key={label}
+        onClick={() => { setView(targetView); setFilter({ industry: null, company: null, status: null, search: "" }); }}
+        className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
+          active ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
+        }`}
+      >
+        {icon}
+        <span>{label}</span>
+      </button>
+    );
+  };
+
   if (collapsed) {
     return (
       <>
         <div className="my-3 h-px bg-border" />
-        {navItem("Verification Report", <BarChart2 className="h-4 w-4" />, "ev-report", 0)}
-        {navItem("API Settings", <Settings className="h-4 w-4" />, "ev-settings", 0)}
+        <CollapsedPopover icon={<Mail className="h-4 w-4" />} label="Email Verifier" isActive={isEVActive}>
+          {popoverItem("Verification Report", <BarChart2 className="h-4 w-4" />, "ev-report")}
+          {popoverItem("API Settings", <Settings className="h-4 w-4" />, "ev-settings")}
+        </CollapsedPopover>
       </>
     );
   }
