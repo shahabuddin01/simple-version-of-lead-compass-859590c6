@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import logoSrc from "@/assets/logo.png";
+
 import { ChevronRight, ChevronLeft, Menu, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare, Building2 } from "lucide-react";
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
@@ -538,7 +538,7 @@ export function CRMSidebar({
             </button>
           ) : (
             <>
-              <img src={logoSrc} alt="NASIR HOSSAIN" className="h-10 w-auto object-contain" />
+              <img src="/favicon.ico" alt="NASIR HOSSAIN" className="h-8 w-8 rounded-lg object-contain" />
               <span className="text-sm font-bold tracking-wide text-foreground flex-1">NASIR HOSSAIN</span>
               <button onClick={() => setCollapsed(true)} className="p-1 rounded-md hover:bg-accent text-muted-foreground">
                 <ChevronLeft className="h-4 w-4" />
