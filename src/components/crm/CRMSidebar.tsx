@@ -410,14 +410,26 @@ export function CRMSidebar({
   const isDeleteValid = deleteInput === "DELETE";
 
   return (
+    <TooltipProvider delayDuration={0}>
     <>
-      <aside className="flex h-screen w-72 flex-col border-r border-border bg-sidebar">
-        <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-          <img src={logoSrc} alt="NASIR HUSSAIN" className="h-10 w-auto object-contain" />
-          <span className="text-sm font-bold tracking-wide text-foreground">NASIR HUSSAIN</span>
+      <aside className={`flex h-screen ${collapsed ? "w-14" : "w-72"} flex-col border-r border-border bg-sidebar transition-all duration-200 shrink-0`}>
+        <div className={`flex h-14 items-center ${collapsed ? "justify-center" : "gap-2"} border-b border-border ${collapsed ? "px-2" : "px-4"}`}>
+          {collapsed ? (
+            <button onClick={() => setCollapsed(false)} className="p-1 rounded-md hover:bg-accent text-muted-foreground">
+              <Menu className="h-5 w-5" />
+            </button>
+          ) : (
+            <>
+              <img src={logoSrc} alt="NASIR HUSSAIN" className="h-10 w-auto object-contain" />
+              <span className="text-sm font-bold tracking-wide text-foreground flex-1">NASIR HUSSAIN</span>
+              <button onClick={() => setCollapsed(true)} className="p-1 rounded-md hover:bg-accent text-muted-foreground">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </>
+          )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+        <nav className={`flex-1 overflow-y-auto ${collapsed ? "px-1" : "px-3"} py-3 space-y-1`}>
           <div className="relative">
             {navItem("Dashboard", <LayoutDashboard className="h-4 w-4" />, "dashboard", stats.total)}
           </div>
@@ -450,11 +462,11 @@ export function CRMSidebar({
           )}
 
           {showWorkforce && (
-            <WorkforceDropdown view={view} navItem={navItem} />
+            <WorkforceDropdown view={view} navItem={navItem} collapsed={collapsed} />
           )}
 
           {showEmailVerifier && (
-            <EmailVerifierDropdown view={view} navItem={navItem} />
+            <EmailVerifierDropdown view={view} navItem={navItem} collapsed={collapsed} />
           )}
 
           {showAPIIntegrations && (
@@ -466,140 +478,143 @@ export function CRMSidebar({
             </>
           )}
 
-
           {showBackups && (
             <div className="relative">
               {navItem("Backups", <ArrowDown className="h-4 w-4" />, "backups", 0)}
             </div>
           )}
 
-          <div className="my-3 h-px bg-border" />
-          <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Industries
-          </p>
+          {!collapsed && (
+            <>
+              <div className="my-3 h-px bg-border" />
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Industries
+              </p>
 
-          {Object.entries(allIndustries).map(([industry, data]) => (
-            <div key={industry}>
-              <button
-                onClick={() => {
-                  setExpanded((p) => ({ ...p, [industry]: !p[industry] }));
-                  setView("all");
-                  setFilter({ industry, company: null, status: null, search: "" });
-                }}
-                onContextMenu={(e) => handleContextMenu(e, "industry", industry)}
-                className={`flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  filter?.industry === industry && !filter?.company
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
-              >
-                <ChevronRight
-                  className={`h-3.5 w-3.5 transition-transform duration-150 ${expanded[industry] ? "rotate-90" : ""}`}
-                />
-                <span className="flex-1 text-left truncate">{industry}</span>
-                <span className="tabular-nums text-xs">{data.total}</span>
-              </button>
-              <AnimatePresence>
-                {expanded[industry] && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="overflow-hidden"
+              {Object.entries(allIndustries).map(([industry, data]) => (
+                <div key={industry}>
+                  <button
+                    onClick={() => {
+                      setExpanded((p) => ({ ...p, [industry]: !p[industry] }));
+                      setView("all");
+                      setFilter({ industry, company: null, status: null, search: "" });
+                    }}
+                    onContextMenu={(e) => handleContextMenu(e, "industry", industry)}
+                    className={`flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      filter?.industry === industry && !filter?.company
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
                   >
-                    {Object.entries(data.companies).map(([company, count], i) => (
-                      <motion.button
-                        key={company}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.02 }}
-                        onClick={() => {
-                          setView("all");
-                          setFilter({ industry, company, status: null, search: "" });
-                        }}
-                        onContextMenu={(e) => handleContextMenu(e, "company", company, industry)}
-                        className="flex w-full items-center gap-2 rounded-md py-1.5 pl-9 pr-3 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                    <ChevronRight
+                      className={`h-3.5 w-3.5 transition-transform duration-150 ${expanded[industry] ? "rotate-90" : ""}`}
+                    />
+                    <span className="flex-1 text-left truncate">{industry}</span>
+                    <span className="tabular-nums text-xs">{data.total}</span>
+                  </button>
+                  <AnimatePresence>
+                    {expanded[industry] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="overflow-hidden"
                       >
-                        <span className="flex-1 text-left truncate">{company}</span>
-                        <span className="tabular-nums text-xs">{count}</span>
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-
-          {/* Add Industry */}
-          {onAddIndustry && (
-            showAddIndustry ? (
-              <div className="px-3 py-1.5 space-y-1.5">
-                <input
-                  autoFocus
-                  value={newIndustryName}
-                  onChange={(e) => { setNewIndustryName(e.target.value); setIndustryError(""); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleAddIndustry(); if (e.key === "Escape") { setShowAddIndustry(false); setIndustryError(""); } }}
-                  placeholder="Industry name"
-                  className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
-                />
-                {industryError && <p className="text-xs text-destructive">{industryError}</p>}
-                <div className="flex gap-1.5">
-                  <button onClick={handleAddIndustry} className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors">Add</button>
-                  <button onClick={() => { setShowAddIndustry(false); setNewIndustryName(""); setIndustryError(""); }} className="rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors">Cancel</button>
+                        {Object.entries(data.companies).map(([company, count], i) => (
+                          <motion.button
+                            key={company}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.02 }}
+                            onClick={() => {
+                              setView("all");
+                              setFilter({ industry, company, status: null, search: "" });
+                            }}
+                            onContextMenu={(e) => handleContextMenu(e, "company", company, industry)}
+                            className="flex w-full items-center gap-2 rounded-md py-1.5 pl-9 pr-3 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                          >
+                            <span className="flex-1 text-left truncate">{company}</span>
+                            <span className="tabular-nums text-xs">{count}</span>
+                          </motion.button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAddIndustry(true)}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-primary hover:bg-primary/5 transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add Industry
-              </button>
-            )
-          )}
+              ))}
 
-          {/* Add Company */}
-          {onAddCompany && (
-            showAddCompany ? (
-              <div className="px-3 py-1.5 space-y-1.5">
-                <input
-                  autoFocus
-                  value={newCompanyName}
-                  onChange={(e) => { setNewCompanyName(e.target.value); setCompanyError(""); }}
-                  placeholder="Company name"
-                  className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
-                />
-                <select
-                  value={newCompanyIndustry}
-                  onChange={(e) => setNewCompanyIndustry(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
-                >
-                  <option value="">Select industry</option>
-                  {industries.map(i => <option key={i} value={i}>{i}</option>)}
-                </select>
-                <input
-                  value={newCompanyEmail}
-                  onChange={(e) => setNewCompanyEmail(e.target.value)}
-                  placeholder="Company email (optional)"
-                  className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
-                />
-                {companyError && <p className="text-xs text-destructive">{companyError}</p>}
-                <div className="flex gap-1.5">
-                  <button onClick={handleAddCompany} className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors">Add</button>
-                  <button onClick={() => { setShowAddCompany(false); setNewCompanyName(""); setNewCompanyEmail(""); setNewCompanyIndustry(""); setCompanyError(""); }} className="rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors">Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAddCompany(true)}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-primary hover:bg-primary/5 transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add Company
-              </button>
-            )
+              {/* Add Industry */}
+              {onAddIndustry && (
+                showAddIndustry ? (
+                  <div className="px-3 py-1.5 space-y-1.5">
+                    <input
+                      autoFocus
+                      value={newIndustryName}
+                      onChange={(e) => { setNewIndustryName(e.target.value); setIndustryError(""); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddIndustry(); if (e.key === "Escape") { setShowAddIndustry(false); setIndustryError(""); } }}
+                      placeholder="Industry name"
+                      className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    />
+                    {industryError && <p className="text-xs text-destructive">{industryError}</p>}
+                    <div className="flex gap-1.5">
+                      <button onClick={handleAddIndustry} className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors">Add</button>
+                      <button onClick={() => { setShowAddIndustry(false); setNewIndustryName(""); setIndustryError(""); }} className="rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAddIndustry(true)}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-primary hover:bg-primary/5 transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add Industry
+                  </button>
+                )
+              )}
+
+              {/* Add Company */}
+              {onAddCompany && (
+                showAddCompany ? (
+                  <div className="px-3 py-1.5 space-y-1.5">
+                    <input
+                      autoFocus
+                      value={newCompanyName}
+                      onChange={(e) => { setNewCompanyName(e.target.value); setCompanyError(""); }}
+                      placeholder="Company name"
+                      className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    />
+                    <select
+                      value={newCompanyIndustry}
+                      onChange={(e) => setNewCompanyIndustry(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm"
+                    >
+                      <option value="">Select industry</option>
+                      {industries.map(i => <option key={i} value={i}>{i}</option>)}
+                    </select>
+                    <input
+                      value={newCompanyEmail}
+                      onChange={(e) => setNewCompanyEmail(e.target.value)}
+                      placeholder="Company email (optional)"
+                      className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    />
+                    {companyError && <p className="text-xs text-destructive">{companyError}</p>}
+                    <div className="flex gap-1.5">
+                      <button onClick={handleAddCompany} className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors">Add</button>
+                      <button onClick={() => { setShowAddCompany(false); setNewCompanyName(""); setNewCompanyEmail(""); setNewCompanyIndustry(""); setCompanyError(""); }} className="rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-accent transition-colors">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAddCompany(true)}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-primary hover:bg-primary/5 transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add Company
+                  </button>
+                )
+              )}
+            </>
           )}
         </nav>
       </aside>
