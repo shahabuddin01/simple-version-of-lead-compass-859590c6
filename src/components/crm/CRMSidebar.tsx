@@ -1,9 +1,11 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import logoSrc from "@/assets/logo.png";
-import { ChevronRight, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare } from "lucide-react";
+import { ChevronRight, ChevronLeft, Menu, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare } from "lucide-react";
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { motion, AnimatePresence } from "motion/react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Workforce collapsible dropdown - extracted as separate component for proper hooks usage
 function WorkforceDropdown({ view, navItem }: { view: ViewMode; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
