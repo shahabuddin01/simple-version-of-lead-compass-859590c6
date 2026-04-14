@@ -116,9 +116,9 @@ export function ExportDropdown({ leads, currentPageLeads = [], onExportDone }: E
           <button onClick={() => handleExport("inactive")} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export All Inactive Leads Only</button>
           <button onClick={() => handleExport("current")} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Current Page</button>
           <Separator className="my-1" />
-          <button onClick={() => { exportPhoneCSV(leads, "work"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Work Phone Numbers</button>
-          <button onClick={() => { exportPhoneCSV(leads, "personal1"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 1 Numbers</button>
-          <button onClick={() => { exportPhoneCSV(leads, "personal2"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 2 Numbers</button>
+          <button onClick={() => { exportPhoneCSV(leads, "work"); setOpen(false); onExportDone?.(); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Work Phone Numbers</button>
+          <button onClick={() => { exportPhoneCSV(leads, "personal1"); setOpen(false); onExportDone?.(); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 1 Numbers</button>
+          <button onClick={() => { exportPhoneCSV(leads, "personal2"); setOpen(false); onExportDone?.(); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 2 Numbers</button>
           <Separator className="my-1" />
           <button onClick={() => { handleExportVerified("good"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Good Emails Only</button>
           <button onClick={() => { handleExportVerified("risky"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Risky Emails Only</button>
