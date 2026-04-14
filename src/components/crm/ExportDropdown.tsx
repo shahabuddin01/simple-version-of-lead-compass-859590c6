@@ -96,6 +96,7 @@ export function ExportDropdown({ leads, currentPageLeads = [], onExportDone }: E
     }
     exportToCSV(filtered, filename);
     setOpen(false);
+    onExportDone?.();
   };
 
   return (
