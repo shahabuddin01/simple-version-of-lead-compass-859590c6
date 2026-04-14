@@ -66,7 +66,7 @@ function CollapsedPopover({
 }
 
 // Workforce collapsible dropdown - extracted as separate component for proper hooks usage
-function WorkforceDropdown({ view, navItem, collapsed }: { view: ViewMode; collapsed?: boolean; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
+function WorkforceDropdown({ view, navItem, collapsed, setView, setFilter }: { view: ViewMode; collapsed?: boolean; setView: (v: ViewMode) => void; setFilter: (f: any) => void; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
   const workforceViews: ViewMode[] = ["workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings"];
   const isWorkforceActive = workforceViews.includes(view);
   const [wfOpen, setWfOpen] = useState(() => {
