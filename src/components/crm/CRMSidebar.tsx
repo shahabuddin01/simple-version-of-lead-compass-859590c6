@@ -66,7 +66,7 @@ function WorkforceDropdown({ view, navItem, collapsed }: { view: ViewMode; colla
 }
 
 // Email Verifier collapsible dropdown
-function EmailVerifierDropdown({ view, navItem }: { view: ViewMode; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
+function EmailVerifierDropdown({ view, navItem, collapsed }: { view: ViewMode; collapsed?: boolean; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
   const evViews: ViewMode[] = ["ev-report", "ev-settings"];
   const isEVActive = evViews.includes(view);
   const [evOpen, setEvOpen] = useState(() => {
@@ -77,6 +77,15 @@ function EmailVerifierDropdown({ view, navItem }: { view: ViewMode; navItem: (la
     setEvOpen(next);
     try { sessionStorage.setItem("ns_ev_open", next ? "1" : "0"); } catch {}
   };
+  if (collapsed) {
+    return (
+      <>
+        <div className="my-3 h-px bg-border" />
+        {navItem("Verification Report", <BarChart2 className="h-4 w-4" />, "ev-report", 0)}
+        {navItem("API Settings", <Settings className="h-4 w-4" />, "ev-settings", 0)}
+      </>
+    );
+  }
   return (
     <>
       <div className="my-3 h-px bg-border" />
