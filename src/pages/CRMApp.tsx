@@ -268,26 +268,14 @@ const CRMApp = () => {
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-3 sm:px-6 gap-2">
-          <h1 className="text-sm font-semibold tracking-tight truncate">{viewTitle}</h1>
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {isLeadView && (
-              <>
-                <button onClick={() => setImportOpen(true)} className="flex items-center gap-1.5 rounded-md border border-input bg-background px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors hover:bg-accent">
-                  <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Import CSV</span>
-                </button>
-                <ExportDropdown leads={leads} currentPageLeads={filteredLeads} />
-                <button onClick={() => setModal({ type: "add" })} className="flex items-center gap-1.5 rounded-md bg-primary px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
-                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Add Lead</span>
-                </button>
-              </>
-            )}
-            
-            <SupabaseUserMenu />
-          </div>
-        </header>
+        <HeaderBar
+          viewTitle={viewTitle}
+          isLeadView={isLeadView}
+          onImport={() => setImportOpen(true)}
+          onAddLead={() => setModal({ type: "add" })}
+          leads={leads}
+          filteredLeads={filteredLeads}
+        />
 
         <main className="flex-1 overflow-y-auto p-3 sm:p-6">
           <AnimatePresence mode="wait">
