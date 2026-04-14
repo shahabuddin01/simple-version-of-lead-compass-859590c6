@@ -167,6 +167,14 @@ export function CRMSidebar({
   onRenameIndustry, onRenameCompany, onMergeCompany, showUserManagement,
   showWorkforce, showMyActivity, showEmailVerifier, showAPIIntegrations, showBackups,
 }: CRMSidebarProps) {
+  const isMobile = useIsMobile();
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Auto-collapse on mobile
+  useEffect(() => {
+    setCollapsed(isMobile);
+  }, [isMobile]);
+
   const tree = useMemo(() => getIndustryTree(leads), [leads]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showAddIndustry, setShowAddIndustry] = useState(false);
