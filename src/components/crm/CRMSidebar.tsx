@@ -726,5 +726,6 @@ export function CRMSidebar({
         </div>
       )}
     </>
+    </TooltipProvider>
   );
 }
