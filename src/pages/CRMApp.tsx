@@ -107,6 +107,7 @@ function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filtered
             </>
           )
         )}
+        <ThemeToggle />
         <SupabaseUserMenu />
       </div>
     </header>
