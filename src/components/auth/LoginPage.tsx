@@ -4,7 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { isAccountLocked } from "@/lib/security";
 import { toast } from "sonner";
 
-import logoSrc from "@/assets/logo.png";
+
 
 export function LoginPage() {
   const { login } = useAuth();
