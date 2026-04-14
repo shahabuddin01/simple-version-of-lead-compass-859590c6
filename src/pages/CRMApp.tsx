@@ -35,6 +35,84 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 import { toast } from "sonner";
 
+// Mobile-friendly header with 3-dot menu
+function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filteredLeads }: {
+  viewTitle: string; isLeadView: boolean; onImport: () => void; onAddLead: () => void; leads: Lead[]; filteredLeads: Lead[];
+}) {
+  const isMobile = useIsMobile();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handle = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [menuOpen]);
+
+  return (
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-3 sm:px-6 gap-2">
+      <h1 className="text-sm font-semibold tracking-tight truncate">{viewTitle}</h1>
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {isLeadView && (
+          isMobile ? (
+            <>
+              <button onClick={onAddLead} className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+              <div ref={menuRef} className="relative">
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className={`flex items-center justify-center rounded-lg border p-1.5 transition-all ${
+                    menuOpen ? "border-primary/30 bg-primary/10 text-primary" : "border-input bg-background text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+                <AnimatePresence>
+                  {menuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.92, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.92, y: -4 }}
+                      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 top-full mt-2 z-[100] min-w-[180px] rounded-xl border border-border bg-popover/95 backdrop-blur-md p-1.5 shadow-2xl ring-1 ring-black/5"
+                    >
+                      <button
+                        onClick={() => { onImport(); setMenuOpen(false); }}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-accent transition-colors"
+                      >
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        Import CSV
+                      </button>
+                      <div onClick={() => setMenuOpen(false)}>
+                        <ExportDropdown leads={leads} currentPageLeads={filteredLeads} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <>
+              <button onClick={onImport} className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                <Upload className="h-4 w-4" /> Import CSV
+              </button>
+              <ExportDropdown leads={leads} currentPageLeads={filteredLeads} />
+              <button onClick={onAddLead} className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+                <Plus className="h-4 w-4" /> Add Lead
+              </button>
+            </>
+          )
+        )}
+        <SupabaseUserMenu />
+      </div>
+    </header>
+  );
+}
+
 // Adapter to convert Supabase leads to legacy Lead type for existing components
 function toFrontendLead(sl: SupabaseLead): Lead {
   return {
