@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Workforce collapsible dropdown - extracted as separate component for proper hooks usage
-function WorkforceDropdown({ view, navItem }: { view: ViewMode; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
+function WorkforceDropdown({ view, navItem, collapsed }: { view: ViewMode; collapsed?: boolean; navItem: (label: string, icon: React.ReactNode, targetView: ViewMode, count: number) => React.ReactNode }) {
   const workforceViews: ViewMode[] = ["workforce-live", "workforce-timelogs", "workforce-salary", "workforce-settings"];
   const isWorkforceActive = workforceViews.includes(view);
   const [wfOpen, setWfOpen] = useState(() => {
