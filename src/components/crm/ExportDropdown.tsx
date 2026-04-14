@@ -48,7 +48,7 @@ const exportPhoneCSV = (data: Lead[], type: "work" | "personal1" | "personal2") 
   document.body.removeChild(link);
 };
 
-export function ExportDropdown({ leads, currentPageLeads = [] }: ExportDropdownProps) {
+export function ExportDropdown({ leads, currentPageLeads = [], onExportDone }: ExportDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
