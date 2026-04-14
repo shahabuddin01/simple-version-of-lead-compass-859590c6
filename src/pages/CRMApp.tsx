@@ -78,7 +78,7 @@ function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filtered
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.92, y: -4 }}
                       transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 top-full mt-2 z-[100] min-w-[180px] rounded-xl border border-border bg-popover/95 backdrop-blur-md p-1.5 shadow-2xl ring-1 ring-black/5"
+                      className="fixed right-3 top-14 z-[9999] min-w-[180px] rounded-xl border border-border bg-popover/95 backdrop-blur-md p-1.5 shadow-2xl ring-1 ring-black/5"
                     >
                       <button
                         onClick={() => { onImport(); setMenuOpen(false); }}
