@@ -30,7 +30,9 @@ import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { AnimatePresence, motion } from "motion/react";
 import { pageTransition } from "@/lib/animations";
-import { Plus, Upload, Loader2, Trash2 } from "lucide-react";
+import { Plus, Upload, Loader2, Trash2, MoreVertical } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useRef, useEffect as useEffectImport } from "react";
 
 import { toast } from "sonner";
 
