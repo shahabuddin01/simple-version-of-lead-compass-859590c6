@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { format, parseISO } from "date-fns";
-import { Plus, Upload, Download, RefreshCw, Check, X, MessageSquare, Instagram, Linkedin, Trash2, Pencil } from "lucide-react";
+import { Plus, Upload, Download, RefreshCw, Check, X, MessageSquare, Instagram, Linkedin, Trash2, Pencil, Search, SlidersHorizontal, MoreVertical, Users, Flame, Thermometer, Snowflake, MailCheck } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { motion, AnimatePresence } from "framer-motion";
 import { SocialLink } from "@/components/crm/SocialLink";
 import { toast } from "sonner";
 import Papa from "papaparse";
