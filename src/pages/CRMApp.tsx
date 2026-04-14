@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSupabaseLeads, SupabaseLead, PipelineStatus, FilterState } from "@/hooks/useSupabaseLeads";
 import { supabase } from "@/integrations/supabase/client";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
@@ -32,7 +32,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { pageTransition } from "@/lib/animations";
 import { Plus, Upload, Loader2, Trash2, MoreVertical } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useRef, useEffect as useEffectImport } from "react";
 
 import { toast } from "sonner";
 
