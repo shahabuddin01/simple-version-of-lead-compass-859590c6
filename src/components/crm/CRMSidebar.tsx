@@ -538,8 +538,8 @@ export function CRMSidebar({
             </button>
           ) : (
             <>
-              <img src={logoSrc} alt="NASIR HUSSAIN" className="h-10 w-auto object-contain" />
-              <span className="text-sm font-bold tracking-wide text-foreground flex-1">NASIR HUSSAIN</span>
+              <img src={logoSrc} alt="NASIR HOSSAIN" className="h-10 w-auto object-contain" />
+              <span className="text-sm font-bold tracking-wide text-foreground flex-1">NASIR HOSSAIN</span>
               <button onClick={() => setCollapsed(true)} className="p-1 rounded-md hover:bg-accent text-muted-foreground">
                 <ChevronLeft className="h-4 w-4" />
               </button>
