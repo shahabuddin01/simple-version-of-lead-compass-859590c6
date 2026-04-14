@@ -3,8 +3,6 @@ import { Search, ChevronDown, Copy, FolderPlus, Folder, SlidersHorizontal, X } f
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion } from "motion/react";
 
 interface LeadFiltersProps {
   filter: FilterState;
