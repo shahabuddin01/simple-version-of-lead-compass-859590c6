@@ -87,8 +87,8 @@ function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filtered
                         <Upload className="h-4 w-4 text-muted-foreground" />
                         Import CSV
                       </button>
-                      <div onClick={() => setMenuOpen(false)}>
-                        <ExportDropdown leads={leads} currentPageLeads={filteredLeads} />
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <ExportDropdown leads={leads} currentPageLeads={filteredLeads} onExportDone={() => setMenuOpen(false)} />
                       </div>
                     </motion.div>
                   )}

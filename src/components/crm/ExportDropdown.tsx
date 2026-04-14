@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 interface ExportDropdownProps {
   leads: Lead[];
   currentPageLeads?: Lead[];
+  onExportDone?: () => void;
 }
 
 const exportPhoneCSV = (data: Lead[], type: "work" | "personal1" | "personal2") => {
@@ -47,7 +48,7 @@ const exportPhoneCSV = (data: Lead[], type: "work" | "personal1" | "personal2") 
   document.body.removeChild(link);
 };
 
-export function ExportDropdown({ leads, currentPageLeads = [] }: ExportDropdownProps) {
+export function ExportDropdown({ leads, currentPageLeads = [], onExportDone }: ExportDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -74,6 +75,7 @@ export function ExportDropdown({ leads, currentPageLeads = [] }: ExportDropdownP
     }
     exportToCSV(filtered, filename);
     setOpen(false);
+    onExportDone?.();
   };
 
   const handleExportVerified = (quality: "good" | "risky" | "bad" | "unverified") => {
@@ -94,6 +96,7 @@ export function ExportDropdown({ leads, currentPageLeads = [] }: ExportDropdownP
     }
     exportToCSV(filtered, filename);
     setOpen(false);
+    onExportDone?.();
   };
 
   return (
@@ -113,9 +116,9 @@ export function ExportDropdown({ leads, currentPageLeads = [] }: ExportDropdownP
           <button onClick={() => handleExport("inactive")} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export All Inactive Leads Only</button>
           <button onClick={() => handleExport("current")} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Current Page</button>
           <Separator className="my-1" />
-          <button onClick={() => { exportPhoneCSV(leads, "work"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Work Phone Numbers</button>
-          <button onClick={() => { exportPhoneCSV(leads, "personal1"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 1 Numbers</button>
-          <button onClick={() => { exportPhoneCSV(leads, "personal2"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 2 Numbers</button>
+          <button onClick={() => { exportPhoneCSV(leads, "work"); setOpen(false); onExportDone?.(); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Work Phone Numbers</button>
+          <button onClick={() => { exportPhoneCSV(leads, "personal1"); setOpen(false); onExportDone?.(); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 1 Numbers</button>
+          <button onClick={() => { exportPhoneCSV(leads, "personal2"); setOpen(false); onExportDone?.(); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Personal Phone 2 Numbers</button>
           <Separator className="my-1" />
           <button onClick={() => { handleExportVerified("good"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Good Emails Only</button>
           <button onClick={() => { handleExportVerified("risky"); setOpen(false); }} className="block w-full px-3 py-2 text-left text-sm hover:bg-accent">Export Risky Emails Only</button>
