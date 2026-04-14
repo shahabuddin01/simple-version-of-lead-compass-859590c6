@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import logoSrc from "@/assets/logo.png";
-import { ChevronRight, ChevronLeft, Menu, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare } from "lucide-react";
+import { ChevronRight, ChevronLeft, Menu, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare, Building2 } from "lucide-react";
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { motion, AnimatePresence } from "motion/react";
