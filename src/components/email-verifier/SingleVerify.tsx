@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, RefreshCw } from "lucide-react";
+import { Search, RefreshCw, Mail, CheckCircle, AlertTriangle, XCircle, Clock, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { loadMVSettings, verifySingle, getESP, getQualityDisplay, getErrorMessage } from "@/lib/emailVerifier";
 import { EmailVerification } from "@/types/lead";
+import { cn } from "@/lib/utils";
 
 interface SingleVerifyProps {
   onSaveToLead?: (email: string, verification: EmailVerification) => void;
@@ -32,7 +33,7 @@ export function SingleVerify({ onSaveToLead }: SingleVerifyProps) {
       }
       setResult({ ...data, _email: target.trim(), _esp: getESP(target.trim()), _verifiedAt: new Date().toISOString() });
     } catch {
-      toast.error("Verification failed. This may be a CORS issue.");
+      toast.error("Verification failed.");
     } finally {
       setLoading(false);
     }
@@ -59,68 +60,75 @@ export function SingleVerify({ onSaveToLead }: SingleVerifyProps) {
   const display = result ? getQualityDisplay(result.quality, result.result) : null;
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-5 max-w-2xl">
       <div>
-        <h2 className="text-lg font-semibold">Single Email Verification</h2>
-        <p className="text-sm text-muted-foreground mt-1">Verify a single email address in real-time.</p>
+        <h2 className="text-base font-semibold tracking-tight">Single Email Verification</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Verify a single email address in real-time</p>
       </div>
 
       <div className="flex gap-2">
-        <Input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter email address..."
-          onKeyDown={(e) => e.key === "Enter" && handleVerify()}
-          className="flex-1"
-        />
-        <Button onClick={() => handleVerify()} disabled={loading}>
-          {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        <div className="relative flex-1">
+          <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email address..."
+            onKeyDown={(e) => e.key === "Enter" && handleVerify()}
+            className="pl-8 h-9 text-sm rounded-lg"
+          />
+        </div>
+        <Button onClick={() => handleVerify()} disabled={loading} size="sm" className="h-9 rounded-lg">
+          {loading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
           Verify
         </Button>
       </div>
 
       {result?.didyoumean && (
-        <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
-          <span>💡 Did you mean: <strong>{result.didyoumean}</strong>?</span>
-          <Button size="sm" variant="outline" onClick={() => { setEmail(result.didyoumean); handleVerify(result.didyoumean); }}>
-            Verify This Instead
+        <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5 text-xs">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+          <span>Did you mean: <strong>{result.didyoumean}</strong>?</span>
+          <Button size="sm" variant="outline" className="ml-auto h-7 text-xs rounded-lg" onClick={() => { setEmail(result.didyoumean); handleVerify(result.didyoumean); }}>
+            Verify This
           </Button>
         </div>
       )}
 
       {result && display && (
-        <Card>
-          <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Badge className={`${display.color} border text-sm font-semibold`}>
-                  {display.icon} {display.label}
-                </Badge>
-                <span className="text-sm font-medium">{result._email}</span>
-              </div>
-              {result._esp !== "Other" && (
-                <Badge variant="outline" className="text-xs">{result._esp}</Badge>
-              )}
+        <div className="rounded-xl border border-border/60 bg-card p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Badge className={cn("border text-xs font-semibold rounded-lg", display.color)}>
+                {display.icon} {display.label}
+              </Badge>
+              <span className="text-xs font-medium">{result._email}</span>
             </div>
-
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-muted-foreground">Result:</span> <span className="font-medium">{result.result} (code: {result.resultcode})</span></div>
-              <div><span className="text-muted-foreground">Sub-result:</span> <span className="font-medium">{result.subresult}</span></div>
-              <div><span className="text-muted-foreground">Free email:</span> <span className="font-medium">{result.free ? "Yes" : "No"}</span></div>
-              <div><span className="text-muted-foreground">Role email:</span> <span className="font-medium">{result.role ? "Yes" : "No"}</span></div>
-              <div><span className="text-muted-foreground">Execution:</span> <span className="font-medium">{result.executiontime}ms</span></div>
-              <div><span className="text-muted-foreground">Credits left:</span> <span className="font-medium tabular-nums">{result.credits?.toLocaleString()}</span></div>
-              <div><span className="text-muted-foreground">Live mode:</span> <span className="font-medium">{result.livemode ? "Yes" : "No"}</span></div>
-              <div><span className="text-muted-foreground">Verified:</span> <span className="font-medium">{new Date(result._verifiedAt).toLocaleString()}</span></div>
-            </div>
-
-            {onSaveToLead && (
-              <Button onClick={handleSave} variant="outline" size="sm">
-                Save to Lead Record
-              </Button>
+            {result._esp !== "Other" && (
+              <Badge variant="outline" className="text-[10px] rounded-md">{result._esp}</Badge>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "Result", value: `${result.result} (${result.resultcode})` },
+              { label: "Sub-result", value: result.subresult },
+              { label: "Free email", value: result.free ? "Yes" : "No" },
+              { label: "Role email", value: result.role ? "Yes" : "No" },
+              { label: "Execution", value: `${result.executiontime}ms` },
+              { label: "Credits left", value: result.credits?.toLocaleString() },
+            ].map(item => (
+              <div key={item.label} className="rounded-lg bg-muted/40 px-2.5 py-2">
+                <p className="text-[10px] text-muted-foreground">{item.label}</p>
+                <p className="text-xs font-medium tabular-nums">{item.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {onSaveToLead && (
+            <Button onClick={handleSave} variant="outline" size="sm" className="h-8 text-xs rounded-lg">
+              Save to Lead Record
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
