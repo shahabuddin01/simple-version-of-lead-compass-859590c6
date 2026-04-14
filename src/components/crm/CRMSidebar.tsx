@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import logoSrc from "@/assets/logo.png";
-import { ChevronRight, ChevronLeft, Menu, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare } from "lucide-react";
+import { ChevronRight, ChevronLeft, Menu, LayoutDashboard, Users, UserCheck, UserX, Plus, AlertTriangle, ArrowDown, Settings, Activity, Clock, DollarSign, Wrench, BarChart3, Mail, BarChart2, ShieldCheck, MessageSquare, Building2 } from "lucide-react";
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
 import { motion, AnimatePresence } from "motion/react";
@@ -578,7 +578,38 @@ export function CRMSidebar({
             </div>
           )}
 
-          {!collapsed && (
+          {/* Industries - Collapsed: popover, Expanded: full tree */}
+          {collapsed ? (
+            <>
+              <div className="my-3 h-px bg-border" />
+              <CollapsedPopover
+                icon={<Building2 className="h-4 w-4" />}
+                label="Industries"
+                isActive={!!filter?.industry}
+              >
+                <div className="max-h-[320px] overflow-y-auto space-y-0.5">
+                  {Object.entries(allIndustries).map(([industry, data]) => (
+                    <button
+                      key={industry}
+                      onClick={() => {
+                        setView("all");
+                        setFilter({ industry, company: null, status: null, search: "" });
+                      }}
+                      className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors ${
+                        filter?.industry === industry
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="flex-1 text-left truncate">{industry}</span>
+                      <span className="tabular-nums text-xs text-muted-foreground">{data.total}</span>
+                    </button>
+                  ))}
+                </div>
+              </CollapsedPopover>
+            </>
+          ) : (
             <>
               <div className="my-3 h-px bg-border" />
               <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
