@@ -75,6 +75,7 @@ export function ExportDropdown({ leads, currentPageLeads = [], onExportDone }: E
     }
     exportToCSV(filtered, filename);
     setOpen(false);
+    onExportDone?.();
   };
 
   const handleExportVerified = (quality: "good" | "risky" | "bad" | "unverified") => {
