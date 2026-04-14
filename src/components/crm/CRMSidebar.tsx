@@ -19,6 +19,17 @@ function WorkforceDropdown({ view, navItem, collapsed }: { view: ViewMode; colla
     setWfOpen(next);
     try { sessionStorage.setItem("ns_wf_open", next ? "1" : "0"); } catch {}
   };
+  if (collapsed) {
+    return (
+      <>
+        <div className="my-3 h-px bg-border" />
+        {navItem("Live Activity", <Activity className="h-4 w-4" />, "workforce-live", 0)}
+        {navItem("Time Logs", <Clock className="h-4 w-4" />, "workforce-timelogs", 0)}
+        {navItem("Salary Report", <DollarSign className="h-4 w-4" />, "workforce-salary", 0)}
+        {navItem("WF Settings", <Wrench className="h-4 w-4" />, "workforce-settings", 0)}
+      </>
+    );
+  }
   return (
     <>
       <div className="my-3 h-px bg-border" />
