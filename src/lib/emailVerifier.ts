@@ -1,8 +1,8 @@
 // ── Million Verifier API Integration ──
-// Single API: https://api.millionverifier.com (uses `api` param)
-// Bulk API:   https://bulkapi.millionverifier.com (uses `key` param)
+// All API calls go through the mv-proxy edge function to avoid CORS issues
 
 import { storeSecure, loadSecure } from "@/lib/security";
+import { supabase } from "@/integrations/supabase/client";
 
 const MV_SETTINGS_KEY = "nhproductionhouse_mv_settings";
 
@@ -71,24 +71,28 @@ export function getFileStatusBadge(status: string): { label: string; color: stri
   return map[status] || { label: status, color: "text-muted-foreground bg-muted border-border" };
 }
 
-// ── API Calls ──
+// ── Proxy helper ──
+async function callProxy(body: Record<string, any>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke("mv-proxy", {
+    body,
+  });
+  if (error) throw new Error(error.message || "Proxy call failed");
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+// ── API Calls (via edge function proxy) ──
 
 export async function getCredits(apiKey: string) {
-  const res = await fetch(
-    `https://api.millionverifier.com/api/v3/credits?api=${encodeURIComponent(apiKey)}`
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
+  return callProxy({ action: "credits", apiKey });
 }
 
 export async function verifySingle(apiKey: string, email: string, timeout = 10) {
-  const url = `https://api.millionverifier.com/api/v3/?api=${encodeURIComponent(apiKey)}&email=${encodeURIComponent(email)}&timeout=${timeout}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
+  return callProxy({ action: "verify_single", apiKey, email, timeout });
 }
 
 export async function bulkUpload(apiKey: string, emails: string[]) {
+  // Bulk upload still needs direct call for FormData file upload
   const fileContent = emails.join("\n");
   const blob = new Blob([fileContent], { type: "text/plain" });
   const file = new File([blob], "ns-production-emails.txt", { type: "text/plain" });
@@ -107,39 +111,26 @@ export async function bulkUpload(apiKey: string, emails: string[]) {
 }
 
 export async function pollFileStatus(apiKey: string, fileId: string) {
-  const res = await fetch(
-    `https://bulkapi.millionverifier.com/bulkapi/v2/fileinfo?key=${encodeURIComponent(apiKey)}&file_id=${fileId}`
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
+  return callProxy({ action: "file_info", apiKey, fileId });
 }
 
 export async function stopVerification(apiKey: string, fileId: string) {
-  const res = await fetch(
-    `https://bulkapi.millionverifier.com/bulkapi/stop?key=${encodeURIComponent(apiKey)}&file_id=${fileId}`
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
+  return callProxy({ action: "stop", apiKey, fileId });
 }
 
 export async function downloadResults(apiKey: string, fileId: string, filter = "all") {
-  const res = await fetch(
-    `https://bulkapi.millionverifier.com/bulkapi/v2/download?key=${encodeURIComponent(apiKey)}&file_id=${fileId}&filter=${filter}`
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.text();
+  const { data, error } = await supabase.functions.invoke("mv-proxy", {
+    body: { action: "download", apiKey, fileId, filter },
+  });
+  if (error) throw new Error(error.message);
+  // download returns text, but supabase invoke may parse it
+  return typeof data === "string" ? data : JSON.stringify(data);
 }
 
 export async function deleteFile(apiKey: string, fileId: string) {
-  await fetch(
-    `https://bulkapi.millionverifier.com/bulkapi/v2/delete?key=${encodeURIComponent(apiKey)}&file_id=${fileId}`
-  );
+  await callProxy({ action: "delete", apiKey, fileId });
 }
 
 export async function getFileList(apiKey: string, limit = 50, offset = 0) {
-  const res = await fetch(
-    `https://bulkapi.millionverifier.com/bulkapi/v2/filelist?key=${encodeURIComponent(apiKey)}&limit=${limit}&offset=${offset}`
-  );
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
+  return callProxy({ action: "file_list", apiKey, limit, offset });
 }
