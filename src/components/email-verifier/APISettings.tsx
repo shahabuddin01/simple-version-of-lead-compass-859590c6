@@ -110,10 +110,15 @@ export function APISettings() {
         persistSettings(trimmedApiKey, useDemo);
         toast.success("Connected successfully! Settings saved.");
       }
-    } catch {
+    } catch (err: any) {
       setCredits(null);
       setStatus("invalid");
-      toast.error("Connection failed. This may be a CORS issue — try using a server-side proxy.");
+      const msg = err?.message || "";
+      if (msg.includes("apikey_not_found") || msg.includes("Invalid")) {
+        toast.error("Invalid API key. Please check and try again.");
+      } else {
+        toast.error("Connection failed: " + (msg || "Unknown error"));
+      }
     } finally {
       setLoading(false);
     }
