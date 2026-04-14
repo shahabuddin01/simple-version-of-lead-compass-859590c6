@@ -4,7 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { isAccountLocked } from "@/lib/security";
 import { toast } from "sonner";
 
-import logoSrc from "@/assets/logo.png";
+
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -13,7 +13,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [lockCountdown, setLockCountdown] = useState(0);
-  const [logoError, setLogoError] = useState(false);
+  
 
   useEffect(() => {
     if (lockCountdown <= 0) return;
@@ -56,16 +56,7 @@ export function LoginPage() {
       <div className="w-full max-w-sm space-y-6">
         {/* Logo */}
         <div className="flex flex-col items-center gap-2">
-          {logoSrc && !logoError ? (
-            <img src={logoSrc} alt="NASIR HOSSAIN" className="h-[60px] w-auto object-contain" onError={() => setLogoError(true)} />
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: 'hsl(220, 50%, 18%)' }}>
-                <span className="text-sm font-bold text-white">NH</span>
-              </div>
-              <span className="text-lg font-semibold tracking-tight text-foreground">NH Production House</span>
-            </div>
-          )}
+          <img src="/favicon.ico" alt="NH Production House" className="h-12 w-12 rounded-xl object-contain" />
         </div>
 
         <div className="text-center space-y-1">
