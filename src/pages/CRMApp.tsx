@@ -288,7 +288,7 @@ const CRMApp = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
           <AnimatePresence mode="wait">
           <motion.div key={view} {...pageTransition} className="h-full">
           {view === "users" && isAdmin ? (
