@@ -1,12 +1,16 @@
 import { useMemo } from "react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   getActivityLogs, getTimeSessions, getHourlyStats,
   calcProductivityScore, getScoreBadge, getSalaryConfig,
 } from "@/hooks/useActivityTracker";
+import { Clock, MousePointerClick, Zap, TrendingUp, CalendarDays, Timer, BarChart3, Wallet, Activity } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function MyActivity() {
   const { appUser } = useSupabaseAuth();
+  const isMobile = useIsMobile();
 
   const userId = appUser?.id || "";
   const userRole = appUser?.role || "user";
@@ -105,74 +109,119 @@ export function MyActivity() {
     return labels[a] || a;
   };
 
+  const actionIcon = (a: string) => {
+    const icons: Record<string, string> = {
+      lead_added: "➕", lead_edited: "✏️", lead_deleted: "🗑", lead_viewed: "👁",
+      status_updated: "🔄", csv_imported: "📥", csv_exported: "📤",
+      search_performed: "🔍", filter_applied: "🏷",
+    };
+    return icons[a] || "•";
+  };
+
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-5 max-w-3xl">
+      {/* Header */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground">My Activity</h2>
-        <p className="text-sm text-muted-foreground">Your personal activity and performance stats</p>
+        <h2 className="text-base font-semibold text-foreground tracking-tight">My Activity</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Your personal performance overview</p>
       </div>
 
       {/* Today's Summary */}
-      <div className="rounded-lg border border-border bg-card p-5">
-        <h3 className="text-sm font-semibold mb-3">Today's Summary</h3>
-        <div className="grid grid-cols-4 gap-4 text-center">
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground">⏱ Active</p>
-            <p className="text-lg font-bold tabular-nums">{fmtMs(todayActiveMs)}</p>
+      <div className="rounded-xl border border-border/60 bg-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
+            <Activity className="h-3.5 w-3.5 text-primary" />
           </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground">🖱 Clicks</p>
-            <p className="text-lg font-bold tabular-nums">{todayClicks}</p>
-          </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground">⚡ Actions</p>
-            <p className="text-lg font-bold tabular-nums">{todayActions}</p>
-          </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground">📊 Score</p>
-            <p className={`text-lg font-bold ${todayBadge.color}`}>{todayScore}/100</p>
-            <p className="text-xs">{todayBadge.emoji} {todayBadge.label}</p>
-          </div>
+          <h3 className="text-sm font-semibold text-foreground">Today's Summary</h3>
         </div>
+        <div className={cn("grid gap-2.5", isMobile ? "grid-cols-2" : "grid-cols-4")}>
+          {[
+            { label: "Active Time", value: fmtMs(todayActiveMs), icon: Clock, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-500/10" },
+            { label: "Clicks", value: String(todayClicks), icon: MousePointerClick, color: "text-violet-500 dark:text-violet-400", bg: "bg-violet-500/10" },
+            { label: "Actions", value: String(todayActions), icon: Zap, color: "text-amber-500 dark:text-amber-400", bg: "bg-amber-500/10" },
+            { label: "Score", value: `${todayScore}/100`, icon: TrendingUp, color: todayScore >= 70 ? "text-green-600 dark:text-green-400" : todayScore >= 40 ? "text-amber-500" : "text-destructive", bg: todayScore >= 70 ? "bg-green-500/10" : todayScore >= 40 ? "bg-amber-500/10" : "bg-destructive/10" },
+          ].map(s => (
+            <div key={s.label} className={cn("flex items-center gap-2.5 rounded-xl border border-border/40 px-3 py-2.5", s.bg)}>
+              <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/80 shadow-sm", s.color)}>
+                <s.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium text-muted-foreground leading-none">{s.label}</p>
+                <p className="text-base font-bold text-foreground leading-tight tabular-nums">{s.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {todayScore > 0 && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2">
+            <span className="text-sm">{todayBadge.emoji}</span>
+            <span className={cn("text-xs font-semibold", todayBadge.color)}>{todayBadge.label}</span>
+            <div className="ml-auto flex-1 max-w-[120px]">
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={cn("h-full rounded-full transition-all", todayScore >= 70 ? "bg-green-500" : todayScore >= 40 ? "bg-amber-500" : "bg-destructive")}
+                  style={{ width: `${todayScore}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* This Month */}
-      <div className="rounded-lg border border-border bg-card p-5">
-        <h3 className="text-sm font-semibold mb-3">This Month</h3>
-        <div className="grid grid-cols-4 gap-4 text-sm">
-          <div>
-            <p className="text-muted-foreground">Working days</p>
-            <p className="font-bold text-lg tabular-nums">{workingDays}</p>
+      <div className="rounded-xl border border-border/60 bg-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
+            <CalendarDays className="h-3.5 w-3.5 text-primary" />
           </div>
-          <div>
-            <p className="text-muted-foreground">Active hours</p>
-            <p className="font-bold text-lg tabular-nums">{activeHours.toFixed(1)}h</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">Avg score</p>
-            <p className="font-bold text-lg tabular-nums">{monthScore}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">Est. salary</p>
-            <p className="font-bold text-lg tabular-nums">{config.currency}{estimatedSalary.toLocaleString()}</p>
-          </div>
+          <h3 className="text-sm font-semibold text-foreground">This Month</h3>
+        </div>
+        <div className={cn("grid gap-2.5", isMobile ? "grid-cols-2" : "grid-cols-4")}>
+          {[
+            { label: "Working Days", value: String(workingDays), icon: CalendarDays, color: "text-primary", bg: "bg-primary/10" },
+            { label: "Active Hours", value: `${activeHours.toFixed(1)}h`, icon: Timer, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-500/10" },
+            { label: "Avg Score", value: String(monthScore), icon: BarChart3, color: "text-emerald-500 dark:text-emerald-400", bg: "bg-emerald-500/10" },
+            { label: "Est. Salary", value: `${config.currency}${estimatedSalary.toLocaleString()}`, icon: Wallet, color: "text-violet-500 dark:text-violet-400", bg: "bg-violet-500/10" },
+          ].map(s => (
+            <div key={s.label} className={cn("flex items-center gap-2.5 rounded-xl border border-border/40 px-3 py-2.5", s.bg)}>
+              <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/80 shadow-sm", s.color)}>
+                <s.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium text-muted-foreground leading-none">{s.label}</p>
+                <p className="text-base font-bold text-foreground leading-tight tabular-nums">{s.value}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Activity Feed */}
-      <div className="rounded-lg border border-border bg-card p-5">
-        <h3 className="text-sm font-semibold mb-3">My Activity Feed (today)</h3>
+      <div className="rounded-xl border border-border/60 bg-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
+            <Zap className="h-3.5 w-3.5 text-primary" />
+          </div>
+          <h3 className="text-sm font-semibold text-foreground">Activity Feed</h3>
+          <span className="text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md font-medium">Today</span>
+        </div>
         {activityFeed.length > 0 ? (
-          <ul className="space-y-1.5 text-sm">
+          <div className="space-y-1">
             {activityFeed.map((log, i) => (
-              <li key={i} className="flex items-baseline gap-2 text-muted-foreground">
-                <span className="tabular-nums text-xs w-20 shrink-0">{fmtTime(log.timestamp)}</span>
-                <span>— {actionLabel(log.action, log.meta)}</span>
-              </li>
+              <div key={i} className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-muted/40 transition-colors group">
+                <span className="text-sm shrink-0">{actionIcon(log.action)}</span>
+                <span className="text-xs text-foreground flex-1 truncate">{actionLabel(log.action, log.meta)}</span>
+                <span className="text-[10px] tabular-nums text-muted-foreground font-medium shrink-0">{fmtTime(log.timestamp)}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No activity yet today</p>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/60 mb-2">
+              <Activity className="h-5 w-5 text-muted-foreground/60" />
+            </div>
+            <p className="text-xs text-muted-foreground">No activity recorded today</p>
+          </div>
         )}
       </div>
     </div>
