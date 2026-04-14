@@ -13,7 +13,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [lockCountdown, setLockCountdown] = useState(0);
-  const [logoError, setLogoError] = useState(false);
+  
 
   useEffect(() => {
     if (lockCountdown <= 0) return;
