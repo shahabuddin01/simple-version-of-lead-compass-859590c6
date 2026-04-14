@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { format, parseISO } from "date-fns";
-import { Plus, Upload, Download, RefreshCw, Check, X, MessageSquare, Instagram, Linkedin, Trash2, Pencil } from "lucide-react";
+import { Plus, Upload, Download, RefreshCw, Check, X, MessageSquare, Instagram, Linkedin, Trash2, Pencil, Search, SlidersHorizontal, MoreVertical, Users, Flame, Thermometer, Snowflake, MailCheck } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { motion, AnimatePresence } from "framer-motion";
 import { SocialLink } from "@/components/crm/SocialLink";
 import { toast } from "sonner";
 import Papa from "papaparse";
@@ -392,8 +394,20 @@ export function ClientCommunicationPage({ leads = [] }: Props) {
   const [editClient, setEditClient] = useState<ClientComm | null>(null);
   const [syncOpen, setSyncOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ClientComm | null>(null);
+  const isMobile = useIsMobile();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { saveClients(clients); }, [clients]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) setMoreMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const filtered = useMemo(() => {
     return clients.filter(c => {
@@ -520,55 +534,166 @@ export function ClientCommunicationPage({ leads = [] }: Props) {
   ];
   const mailStatusOptions = Object.entries(mailStatusConfig).map(([k, v]) => ({ value: k, ...v }));
 
+  const activeFilterCount = (leadStatusFilter !== "all" ? 1 : 0) + (mailStatusFilter !== "all" ? 1 : 0);
+
   return (
     <div className="space-y-4">
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className={cn("grid gap-2.5", isMobile ? "grid-cols-3" : "grid-cols-5")}>
         {[
-          { label: "Total", value: stats.total, icon: null },
-          { label: "HOT", value: stats.hot, icon: "🔴" },
-          { label: "WARM", value: stats.warm, icon: "🟡" },
-          { label: "COLD", value: stats.cold, icon: "🔵" },
-          { label: "Replied", value: stats.replied, icon: "✅" },
+          { label: "Total", value: stats.total, icon: Users, color: "text-foreground", bg: "bg-muted/60" },
+          { label: "HOT", value: stats.hot, icon: Flame, color: "text-destructive", bg: "bg-destructive/10" },
+          { label: "WARM", value: stats.warm, icon: Thermometer, color: "text-orange-500 dark:text-orange-400", bg: "bg-orange-500/10" },
+          { label: "COLD", value: stats.cold, icon: Snowflake, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-500/10" },
+          { label: "Replied", value: stats.replied, icon: MailCheck, color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10" },
         ].map(s => (
-          <Card key={s.label} className="p-3">
-            <div className="text-xs text-muted-foreground">{s.label}</div>
-            <div className="text-xl font-bold text-foreground flex items-center gap-1">{s.value} {s.icon && <span className="text-sm">{s.icon}</span>}</div>
-          </Card>
+          <div key={s.label} className={cn("flex items-center gap-2.5 rounded-xl border border-border/50 px-3 py-2.5 transition-colors", s.bg)}>
+            <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background/80 shadow-sm", s.color)}>
+              <s.icon className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium text-muted-foreground leading-none">{s.label}</p>
+              <p className="text-lg font-bold text-foreground leading-tight">{s.value}</p>
+            </div>
+          </div>
         ))}
       </div>
 
       {/* Top bar */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Input placeholder="Search name/company..." value={search} onChange={e => setSearch(e.target.value)} className="w-56" />
-        <Select value={leadStatusFilter} onValueChange={setLeadStatusFilter}>
-          <SelectTrigger className="w-32"><SelectValue placeholder="Lead Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="HOT">HOT</SelectItem>
-            <SelectItem value="WARM">WARM</SelectItem>
-            <SelectItem value="COLD">COLD</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={mailStatusFilter} onValueChange={setMailStatusFilter}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Mail Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Mail</SelectItem>
-            <SelectItem value="not_send">Not Sent</SelectItem>
-            <SelectItem value="mail_sent">Mail Sent</SelectItem>
-            <SelectItem value="follow_up_sent">Follow Up</SelectItem>
-            <SelectItem value="reply_received">Replied</SelectItem>
-            <SelectItem value="no">No</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex-1" />
-        <Button variant="outline" size="sm" onClick={() => setSyncOpen(true)}><RefreshCw className="h-4 w-4 mr-1" /> Sync from Leads</Button>
-        <label className="cursor-pointer">
-          <input type="file" accept=".csv" onChange={handleImport} className="hidden" />
-          <Button variant="outline" size="sm" asChild><span><Upload className="h-4 w-4 mr-1" /> Import CSV</span></Button>
-        </label>
-        <Button variant="outline" size="sm" onClick={handleExport}><Download className="h-4 w-4 mr-1" /> Export CSV</Button>
-        <Button size="sm" onClick={() => { setEditClient(null); setModalOpen(true); }}><Plus className="h-4 w-4 mr-1" /> Add Client</Button>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input placeholder="Search name or company..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-9 text-sm rounded-lg" />
+          </div>
+
+          {isMobile ? (
+            <>
+              <button
+                onClick={() => setFiltersOpen(!filtersOpen)}
+                className={cn(
+                  "relative flex items-center gap-1 rounded-lg border px-2.5 py-2 text-xs transition-all",
+                  filtersOpen ? "border-primary/30 bg-primary/10 text-primary" : "border-input bg-background text-muted-foreground hover:bg-accent"
+                )}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                {activeFilterCount > 0 && (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              <button onClick={() => { setEditClient(null); setModalOpen(true); }} className="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-2 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+
+              <div ref={moreMenuRef} className="relative">
+                <button
+                  onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+                  className={cn(
+                    "flex items-center justify-center rounded-lg border p-2 transition-all",
+                    moreMenuOpen ? "border-primary/30 bg-primary/10 text-primary" : "border-input bg-background text-muted-foreground hover:bg-accent"
+                  )}
+                >
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </button>
+                <AnimatePresence>
+                  {moreMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.92, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.92, y: -4 }}
+                      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                      className="fixed right-3 z-[9999] mt-2 min-w-[180px] rounded-xl border border-border bg-popover/95 backdrop-blur-md p-1.5 shadow-2xl ring-1 ring-black/5"
+                      style={{ top: (moreMenuRef.current?.getBoundingClientRect().bottom ?? 0) + 4 }}
+                    >
+                      <button onClick={() => { setSyncOpen(true); setMoreMenuOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-accent transition-colors">
+                        <RefreshCw className="h-4 w-4 text-muted-foreground" /> Sync from Leads
+                      </button>
+                      <label className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-accent transition-colors">
+                        <Upload className="h-4 w-4 text-muted-foreground" /> Import CSV
+                        <input type="file" accept=".csv" onChange={(e) => { handleImport(e); setMoreMenuOpen(false); }} className="hidden" />
+                      </label>
+                      <button onClick={() => { handleExport(); setMoreMenuOpen(false); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-accent transition-colors">
+                        <Download className="h-4 w-4 text-muted-foreground" /> Export CSV
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <>
+              <Select value={leadStatusFilter} onValueChange={setLeadStatusFilter}>
+                <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Lead Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="HOT">HOT</SelectItem>
+                  <SelectItem value="WARM">WARM</SelectItem>
+                  <SelectItem value="COLD">COLD</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={mailStatusFilter} onValueChange={setMailStatusFilter}>
+                <SelectTrigger className="w-36 h-9"><SelectValue placeholder="Mail Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Mail</SelectItem>
+                  <SelectItem value="not_send">Not Sent</SelectItem>
+                  <SelectItem value="mail_sent">Mail Sent</SelectItem>
+                  <SelectItem value="follow_up_sent">Follow Up</SelectItem>
+                  <SelectItem value="reply_received">Replied</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex-1" />
+              <Button variant="outline" size="sm" className="h-9" onClick={() => setSyncOpen(true)}><RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Sync</Button>
+              <label className="cursor-pointer">
+                <input type="file" accept=".csv" onChange={handleImport} className="hidden" />
+                <Button variant="outline" size="sm" className="h-9" asChild><span><Upload className="h-3.5 w-3.5 mr-1.5" /> Import</span></Button>
+              </label>
+              <Button variant="outline" size="sm" className="h-9" onClick={handleExport}><Download className="h-3.5 w-3.5 mr-1.5" /> Export</Button>
+              <Button size="sm" className="h-9" onClick={() => { setEditClient(null); setModalOpen(true); }}><Plus className="h-3.5 w-3.5 mr-1.5" /> Add Client</Button>
+            </>
+          )}
+        </div>
+
+        {/* Mobile collapsible filters */}
+        {isMobile && (
+          <AnimatePresence>
+            {filtersOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-muted/30 p-2.5">
+                  <Select value={leadStatusFilter} onValueChange={setLeadStatusFilter}>
+                    <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Lead Status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="HOT">HOT</SelectItem>
+                      <SelectItem value="WARM">WARM</SelectItem>
+                      <SelectItem value="COLD">COLD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={mailStatusFilter} onValueChange={setMailStatusFilter}>
+                    <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Mail Status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Mail</SelectItem>
+                      <SelectItem value="not_send">Not Sent</SelectItem>
+                      <SelectItem value="mail_sent">Mail Sent</SelectItem>
+                      <SelectItem value="follow_up_sent">Follow Up</SelectItem>
+                      <SelectItem value="reply_received">Replied</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* Table */}
