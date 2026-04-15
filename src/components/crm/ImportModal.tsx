@@ -495,52 +495,46 @@ export function ImportModal({
               )}
             </div>
 
-            {/* Mapping table */}
-            <div className="max-h-[60vh] overflow-auto rounded-md border border-border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground uppercase text-xs tracking-wider">Column</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground uppercase text-xs tracking-wider">Matched Field</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground uppercase text-xs tracking-wider">Sample 1</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground uppercase text-xs tracking-wider">Sample 2</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground uppercase text-xs tracking-wider">Sample 3</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {headers.map((header, colIdx) => {
-                    const isDuplicate = duplicateFields.has(colIdx);
-                    return (
-                      <tr
-                        key={colIdx}
-                        className={`border-b border-border last:border-0 ${isDuplicate ? "bg-destructive/5" : ""}`}
+            {/* Mapping list */}
+            <div className="max-h-[60vh] overflow-auto rounded-md border border-border divide-y divide-border">
+              {headers.map((header, colIdx) => {
+                const isDuplicate = duplicateFields.has(colIdx);
+                return (
+                  <div
+                    key={colIdx}
+                    className={`px-4 py-3 space-y-2 ${isDuplicate ? "bg-destructive/5" : ""}`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium truncate shrink-0 min-w-0">{header}</span>
+                      <select
+                        value={mapping[colIdx] || ""}
+                        onChange={(e) => setFieldForColumn(colIdx, e.target.value as CrmFieldValue)}
+                        className={`w-full max-w-[200px] rounded-md border px-2 py-1.5 text-sm bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${
+                          isDuplicate ? "border-destructive text-destructive" : "border-input"
+                        }`}
                       >
-                        <td className="px-4 py-2.5 font-medium">{header}</td>
-                        <td className="px-4 py-2.5">
-                          <select
-                            value={mapping[colIdx] || ""}
-                            onChange={(e) => setFieldForColumn(colIdx, e.target.value as CrmFieldValue)}
-                            className={`w-full rounded-md border px-2 py-1.5 text-sm bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${
-                              isDuplicate ? "border-destructive text-destructive" : "border-input"
-                            }`}
-                          >
-                            {CRM_FIELDS.map((f) => (
-                              <option key={f.value} value={f.value}>
-                                {f.label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        {[0, 1, 2].map((sampleIdx) => (
-                          <td key={sampleIdx} className="px-4 py-2.5 text-muted-foreground max-w-[160px] truncate">
-                            {samples[sampleIdx] ? truncate(samples[sampleIdx][colIdx] || "") : ""}
-                          </td>
+                        {CRM_FIELDS.map((f) => (
+                          <option key={f.value} value={f.value}>
+                            {f.label}
+                          </option>
                         ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                      </select>
+                    </div>
+                    {samples.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {samples.map((row, sampleIdx) => {
+                          const val = truncate(row[colIdx] || "", 30);
+                          return val ? (
+                            <span key={sampleIdx} className="inline-block rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground truncate max-w-[150px]">
+                              {val}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Footer */}
