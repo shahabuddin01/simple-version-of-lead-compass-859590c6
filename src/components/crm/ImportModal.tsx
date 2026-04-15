@@ -509,7 +509,7 @@ export function ImportModal({
                       <select
                         value={mapping[colIdx] || ""}
                         onChange={(e) => setFieldForColumn(colIdx, e.target.value as CrmFieldValue)}
-                        className={`w-full max-w-[200px] rounded-md border px-2 py-1.5 text-sm bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${
+                        className={`w-full sm:w-2/3 rounded-md border px-2 py-1.5 text-sm bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${
                           isDuplicate ? "border-destructive text-destructive" : "border-input"
                         }`}
                       >
