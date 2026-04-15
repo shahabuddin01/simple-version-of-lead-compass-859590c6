@@ -36,8 +36,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
 // Mobile-friendly header with 3-dot menu
-function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filteredLeads }: {
-  viewTitle: string; isLeadView: boolean; onImport: () => void; onAddLead: () => void; leads: Lead[]; filteredLeads: Lead[];
+function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filteredLeads, isAdmin }: {
+  viewTitle: string; isLeadView: boolean; onImport: () => void; onAddLead: () => void; leads: Lead[]; filteredLeads: Lead[]; isAdmin: boolean;
 }) {
   const isMobile = useIsMobile();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -87,9 +87,11 @@ function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filtered
                         <Upload className="h-4 w-4 text-muted-foreground" />
                         Import CSV
                       </button>
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <ExportDropdown leads={leads} currentPageLeads={filteredLeads} onExportDone={() => setMenuOpen(false)} />
-                      </div>
+                      {isAdmin && (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ExportDropdown leads={leads} currentPageLeads={filteredLeads} onExportDone={() => setMenuOpen(false)} />
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -100,7 +102,7 @@ function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filtered
               <button onClick={onImport} className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
                 <Upload className="h-4 w-4" /> Import CSV
               </button>
-              <ExportDropdown leads={leads} currentPageLeads={filteredLeads} />
+              {isAdmin && <ExportDropdown leads={leads} currentPageLeads={filteredLeads} />}
               <button onClick={onAddLead} className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
                 <Plus className="h-4 w-4" /> Add Lead
               </button>
@@ -354,6 +356,7 @@ const CRMApp = () => {
           onAddLead={() => setModal({ type: "add" })}
           leads={leads}
           filteredLeads={filteredLeads}
+          isAdmin={isAdmin}
         />
 
         <main className="flex-1 overflow-y-auto p-3 sm:p-6">
