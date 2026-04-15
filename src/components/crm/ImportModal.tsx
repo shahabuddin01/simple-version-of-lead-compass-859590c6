@@ -504,12 +504,12 @@ export function ImportModal({
                     key={colIdx}
                     className={`px-4 py-3 space-y-2 ${isDuplicate ? "bg-destructive/5" : ""}`}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-medium truncate shrink-0 min-w-0">{header}</span>
+                    <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                      <span className="text-sm font-medium truncate w-full sm:w-1/3 sm:min-w-[120px]">{header}</span>
                       <select
                         value={mapping[colIdx] || ""}
                         onChange={(e) => setFieldForColumn(colIdx, e.target.value as CrmFieldValue)}
-                        className={`w-full max-w-[200px] rounded-md border px-2 py-1.5 text-sm bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${
+                        className={`w-full sm:w-2/3 rounded-md border px-2 py-1.5 text-sm bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${
                           isDuplicate ? "border-destructive text-destructive" : "border-input"
                         }`}
                       >
