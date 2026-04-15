@@ -36,8 +36,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
 // Mobile-friendly header with 3-dot menu
-function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filteredLeads }: {
-  viewTitle: string; isLeadView: boolean; onImport: () => void; onAddLead: () => void; leads: Lead[]; filteredLeads: Lead[];
+function HeaderBar({ viewTitle, isLeadView, onImport, onAddLead, leads, filteredLeads, isAdmin }: {
+  viewTitle: string; isLeadView: boolean; onImport: () => void; onAddLead: () => void; leads: Lead[]; filteredLeads: Lead[]; isAdmin: boolean;
 }) {
   const isMobile = useIsMobile();
   const [menuOpen, setMenuOpen] = useState(false);
