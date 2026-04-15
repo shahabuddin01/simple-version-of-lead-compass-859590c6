@@ -143,7 +143,7 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
       className="space-y-4"
     >
       {/* Metric Cards Row */}
-      <div className={cn("grid gap-3", isMobile ? "grid-cols-1" : "grid-cols-3")}>
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
         {metricCards.map((m) => {
           const Icon = m.icon;
           return (
@@ -154,19 +154,19 @@ export function DashboardView({ stats, industryBreakdown, onIndustryClick }: Das
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className={cn(
-                "relative flex items-center gap-4 rounded-2xl border px-5 py-4 cursor-default overflow-hidden",
+                "relative flex items-center gap-3 sm:gap-4 rounded-2xl border px-3 sm:px-5 py-3 sm:py-4 cursor-default overflow-hidden",
                 m.bg, m.borderColor
               )}
             >
               <div className={cn(
-                "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/80 shadow-sm ring-1 ring-border/30",
+                "flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-background/80 shadow-sm ring-1 ring-border/30",
                 m.color
               )}>
-                <Icon className="h-5.5 w-5.5" />
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-medium text-muted-foreground leading-none uppercase tracking-wider">{m.label}</p>
-                <p className="mt-1.5 text-3xl font-bold leading-none text-foreground">
+                <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-none uppercase tracking-wider truncate">{m.label}</p>
+                <p className="mt-1 sm:mt-1.5 text-xl sm:text-3xl font-bold leading-none text-foreground">
                   <AnimatedCounter value={m.value} />
                 </p>
               </div>
