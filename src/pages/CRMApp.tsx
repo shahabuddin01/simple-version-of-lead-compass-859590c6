@@ -356,6 +356,7 @@ const CRMApp = () => {
           onAddLead={() => setModal({ type: "add" })}
           leads={leads}
           filteredLeads={filteredLeads}
+          isAdmin={isAdmin}
         />
 
         <main className="flex-1 overflow-y-auto p-3 sm:p-6">
