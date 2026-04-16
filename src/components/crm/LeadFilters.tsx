@@ -14,6 +14,7 @@ interface LeadFiltersProps {
   folders: string[];
   duplicateCount?: number;
   onCreateFolder?: (name: string) => void;
+  isAdmin?: boolean;
 }
 
 const statuses: PipelineStatus[] = ["New", "Contacted", "In Progress", "Closed", "Not Interested"];
