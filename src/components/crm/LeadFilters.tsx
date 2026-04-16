@@ -143,7 +143,7 @@ function FolderDropdown({ value, folders, onChange, onCreateFolder }: {
   );
 }
 
-export function LeadFilters({ filter, setFilter, industries, companies, folders, duplicateCount = 0, onCreateFolder }: LeadFiltersProps) {
+export function LeadFilters({ filter, setFilter, industries, companies, folders, duplicateCount = 0, onCreateFolder, isAdmin = true }: LeadFiltersProps) {
   const isMobile = useIsMobile();
   const activeFilter = filter.activeFilter || "all";
   const activeLabel = activeFilter === "active" ? "Active Leads" : activeFilter === "inactive" ? "Inactive Leads" : null;
@@ -173,12 +173,14 @@ export function LeadFilters({ filter, setFilter, industries, companies, folders,
         onChange={(v) => setFilter({ ...filter, industry: v, company: v ? filter.company : null })} />
       <Dropdown label="Company" value={filter.company} options={companies}
         onChange={(v) => setFilter({ ...filter, company: v })} />
-      <FolderDropdown
-        value={filter.folder || null}
-        folders={folders}
-        onChange={(v) => setFilter({ ...filter, folder: v })}
-        onCreateFolder={onCreateFolder}
-      />
+      {isAdmin && (
+        <FolderDropdown
+          value={filter.folder || null}
+          folders={folders}
+          onChange={(v) => setFilter({ ...filter, folder: v })}
+          onCreateFolder={onCreateFolder}
+        />
+      )}
       <Dropdown label="Status" value={filter.status} options={statuses}
         onChange={(v) => setFilter({ ...filter, status: v as PipelineStatus | null })} />
       <Dropdown label="Work ESP" value={filter.workESP || null} options={espOptions}
