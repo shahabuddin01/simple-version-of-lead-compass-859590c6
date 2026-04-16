@@ -391,7 +391,7 @@ const CRMApp = () => {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={allFolders} duplicateCount={duplicateCount} onCreateFolder={(name) => {
+                <LeadFilters filter={filter as any} setFilter={setFilter as any} sortBy={sortBy} setSortBy={setSortBy} industries={industries} companies={companies} folders={allFolders} duplicateCount={duplicateCount} isAdmin={isAdmin} onCreateFolder={(name) => {
                   setCustomFolders(prev => prev.includes(name) ? prev : [...prev, name]);
                   toast.success(`Folder "${name}" created`);
                 }} />
@@ -429,11 +429,11 @@ const CRMApp = () => {
                     onAddToClientComm={() => {}}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
-                    folders={allFolders}
-                    onMoveToFolder={async (folder: string) => {
+                    folders={isAdmin ? allFolders : []}
+                    onMoveToFolder={isAdmin ? async (folder: string) => {
                       await bulkMoveToFolder(selectedIds, folder);
                       setSelectedIds(new Set());
-                    }}
+                    } : undefined}
                   />
                 )}
               </AnimatePresence>
