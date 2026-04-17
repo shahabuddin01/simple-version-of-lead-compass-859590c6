@@ -20,6 +20,8 @@ import { BackupSettings } from "@/components/settings/BackupSettings";
 import { ClientCommunicationPage } from "@/components/client-communications/ClientCommunicationPage";
 import { VerificationReport } from "@/components/email-verifier/VerificationReport";
 import { APISettings } from "@/components/email-verifier/APISettings";
+import { loadMVSettings, verifySingle, getESP } from "@/lib/emailVerifier";
+import { EmailVerification } from "@/types/lead";
 import { APIDashboard } from "@/components/api-dashboard/APIDashboard";
 import { LiveActivity } from "@/components/workforce/LiveActivity";
 import { TimeLogs } from "@/components/workforce/TimeLogs";
