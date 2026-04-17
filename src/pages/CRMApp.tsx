@@ -14,6 +14,7 @@ import { LeadFilters } from "@/components/crm/LeadFilters";
 import { ExportDropdown } from "@/components/crm/ExportDropdown";
 import { BulkActionBar } from "@/components/crm/BulkActionBar";
 import { BulkDeleteModal } from "@/components/crm/BulkDeleteModal";
+import { AddToClientCommModal } from "@/components/crm/AddToClientCommModal";
 import { SupabaseUserManagement } from "@/pages/SupabaseUserManagement";
 import { BackupSettings } from "@/components/settings/BackupSettings";
 import { ClientCommunicationPage } from "@/components/client-communications/ClientCommunicationPage";
@@ -187,6 +188,7 @@ const CRMApp = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkVerifying, setBulkVerifying] = useState(false);
   const [bulkDeleteMode, setBulkDeleteMode] = useState<"selected" | "page" | "pages" | "all" | null>(null);
+  const [clientCommModalOpen, setClientCommModalOpen] = useState(false);
   const [deleteProgress, setDeleteProgress] = useState<any>(null);
   const [modal, setModal] = useState<{ type: "add" | "edit"; lead?: Lead } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -426,7 +428,7 @@ const CRMApp = () => {
                     onDeletePage={isAdmin ? () => setBulkDeleteMode("page") : undefined}
                     onDeleteByPages={isAdmin ? () => setBulkDeleteMode("pages") : undefined}
                     onDeleteAll={isAdmin ? () => setBulkDeleteMode("all") : undefined}
-                    onAddToClientComm={() => {}}
+                    onAddToClientComm={() => setClientCommModalOpen(true)}
                     pageLeadCount={pageLeads.length}
                     totalLeads={leads.length}
                     folders={isAdmin ? allFolders : []}
@@ -480,6 +482,13 @@ const CRMApp = () => {
         onConfirmDelete={handleBulkDelete}
         progress={deleteProgress}
         onGoToLeads={() => { setView("all"); setBulkDeleteMode(null); setDeleteProgress(null); }}
+      />
+
+      <AddToClientCommModal
+        open={clientCommModalOpen}
+        onClose={() => setClientCommModalOpen(false)}
+        selectedLeads={leads.filter(l => selectedIds.has(l.id)) as unknown as Lead[]}
+        onDone={() => setSelectedIds(new Set())}
       />
     </div>
   );
