@@ -1,18 +1,19 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Key, Eye, EyeOff, Copy, Check, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-function CopyBtn({ text }: { text: string }) {
+const CopyBtn = forwardRef<HTMLButtonElement, { text: string }>(({ text }, ref) => {
   const [copied, setCopied] = useState(false);
   const copy = () => { navigator.clipboard.writeText(text); setCopied(true); toast.success("Copied"); setTimeout(() => setCopied(false), 1500); };
   return (
-    <button onClick={copy} className="inline-flex items-center gap-1 rounded border border-input bg-background px-2 py-1 text-xs hover:bg-accent transition-colors">
+    <button ref={ref} onClick={copy} className="inline-flex items-center gap-1 rounded border border-input bg-background px-2 py-1 text-xs hover:bg-accent transition-colors">
       {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />} {copied ? "Copied" : "Copy"}
     </button>
   );
-}
+});
+CopyBtn.displayName = "CopyBtn";
 
 const CRED_KEY = "nhproductionhouse_api_credentials";
 
