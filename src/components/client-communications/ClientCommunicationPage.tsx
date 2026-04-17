@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, forwardRef } from "react";
 import { format, parseISO } from "date-fns";
 import { Plus, Upload, Download, RefreshCw, Check, X, MessageSquare, Instagram, Linkedin, Trash2, Pencil, Search, SlidersHorizontal, MoreVertical, Users, Flame, Thermometer, Snowflake, MailCheck } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -76,7 +76,7 @@ interface SyncModalProps {
   onSync: (clients: Omit<ClientComm, "id">[]) => void;
 }
 
-function SyncFromLeadsModal({ open, onClose, leads, existingClients, onSync }: SyncModalProps) {
+const SyncFromLeadsModal = forwardRef<HTMLDivElement, SyncModalProps>(function SyncFromLeadsModal({ open, onClose, leads, existingClients, onSync }, _ref) {
   const [skip, setSkip] = useState(true);
   const [industryFilter, setIndustryFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("all");
@@ -173,7 +173,7 @@ function SyncFromLeadsModal({ open, onClose, leads, existingClients, onSync }: S
       </DialogContent>
     </Dialog>
   );
-}
+});
 
 interface ClientModalProps {
   open: boolean;
@@ -385,7 +385,7 @@ interface Props {
   leads?: any[];
 }
 
-export function ClientCommunicationPage({ leads = [] }: Props) {
+export const ClientCommunicationPage = forwardRef<HTMLDivElement, Props>(function ClientCommunicationPage({ leads = [] }, _ref) {
   const [clients, setClients] = useState<ClientComm[]>(() => loadClients());
   const [search, setSearch] = useState("");
   const [leadStatusFilter, setLeadStatusFilter] = useState("all");
