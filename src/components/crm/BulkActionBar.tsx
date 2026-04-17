@@ -43,12 +43,15 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
   const statusBtnRef = useRef<HTMLButtonElement>(null);
   const verifyBtnRef = useRef<HTMLButtonElement>(null);
   const deleteBtnRef = useRef<HTMLButtonElement>(null);
+  const folderBtnRef = useRef<HTMLButtonElement>(null);
   const statusDropRef = useRef<HTMLDivElement>(null);
   const verifyDropRef = useRef<HTMLDivElement>(null);
   const deleteDropRef = useRef<HTMLDivElement>(null);
+  const folderDropRef = useRef<HTMLDivElement>(null);
   const [statusPos, setStatusPos] = useState({ top: 0, left: 0 });
   const [verifyPos, setVerifyPos] = useState({ top: 0, left: 0 });
   const [deletePos, setDeletePos] = useState({ top: 0, left: 0 });
+  const [folderPos, setFolderPos] = useState({ top: 0, left: 0 });
 
   const updatePos = useCallback((ref: React.RefObject<HTMLButtonElement | null>, setter: (p: { top: number; left: number }) => void) => {
     if (!ref.current) return;
@@ -61,28 +64,30 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
   }, []);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen && !deleteOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen && !folderOpen) return;
     const onScroll = () => {
       if (statusOpen) updatePos(statusBtnRef, setStatusPos);
       if (verifyOpen) updatePos(verifyBtnRef, setVerifyPos);
       if (deleteOpen) updatePos(deleteBtnRef, setDeletePos);
+      if (folderOpen) updatePos(folderBtnRef, setFolderPos);
     };
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onScroll);
     return () => { window.removeEventListener("scroll", onScroll, true); window.removeEventListener("resize", onScroll); };
-  }, [statusOpen, verifyOpen, deleteOpen, updatePos]);
+  }, [statusOpen, verifyOpen, deleteOpen, folderOpen, updatePos]);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen && !deleteOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen && !folderOpen) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
       if (statusOpen && !statusBtnRef.current?.contains(t) && !statusDropRef.current?.contains(t)) setStatusOpen(false);
       if (verifyOpen && !verifyBtnRef.current?.contains(t) && !verifyDropRef.current?.contains(t)) setVerifyOpen(false);
       if (deleteOpen && !deleteBtnRef.current?.contains(t) && !deleteDropRef.current?.contains(t)) setDeleteOpen(false);
+      if (folderOpen && !folderBtnRef.current?.contains(t) && !folderDropRef.current?.contains(t)) setFolderOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [statusOpen, verifyOpen, deleteOpen]);
+  }, [statusOpen, verifyOpen, deleteOpen, folderOpen]);
 
   const toggleVerifyType = (type: "work" | "personal1" | "personal2") => {
     setVerifyTypes(prev => {
@@ -169,15 +174,17 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
           {verifyDropdown}
 
           {onMoveToFolder && (
-            <div className="relative">
+            <>
               <button
-                onClick={() => { setFolderOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); setDeleteOpen(false); }}
+                ref={folderBtnRef}
+                onMouseDown={(e) => { e.stopPropagation(); updatePos(folderBtnRef, setFolderPos); setFolderOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); setDeleteOpen(false); }}
                 className={btnClass}>
                 <Folder className="h-3.5 w-3.5 text-muted-foreground" />
                 Folder <ChevronDown className="h-3 w-3 text-muted-foreground" />
               </button>
-              {folderOpen && (
-                <div className="absolute bottom-full mb-1 left-0 z-50 w-56 rounded-md border border-border bg-popover py-1 shadow-lg max-h-64 overflow-y-auto">
+              {folderOpen && ReactDOM.createPortal(
+                <div ref={folderDropRef} style={{ position: "fixed", top: folderPos.top, left: folderPos.left, zIndex: 99999, minWidth: 224 }}
+                  className="rounded-lg border border-border bg-popover py-1 shadow-lg max-h-72 overflow-y-auto">
                   <button onClick={() => { onMoveToFolder(""); setFolderOpen(false); }}
                     className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm font-medium text-muted-foreground hover:bg-accent">
                     <Folder className="h-3 w-3" /> Remove from Folder
@@ -205,9 +212,8 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
                       Create & Move
                     </button>
                   </div>
-                </div>
-              )}
-            </div>
+                </div>, document.body)}
+            </>
           )}
 
           {onAddToClientComm && (
