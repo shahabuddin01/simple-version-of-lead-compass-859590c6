@@ -800,7 +800,7 @@ export const ClientCommunicationPage = forwardRef<HTMLDivElement, Props>(functio
       </Dialog>
     </div>
   );
-}
+});
 
 function parseDateFlex(s: string): string {
   if (!s) return "";
