@@ -20,6 +20,8 @@ import { BackupSettings } from "@/components/settings/BackupSettings";
 import { ClientCommunicationPage } from "@/components/client-communications/ClientCommunicationPage";
 import { VerificationReport } from "@/components/email-verifier/VerificationReport";
 import { APISettings } from "@/components/email-verifier/APISettings";
+import { loadMVSettings, verifySingle, getESP } from "@/lib/emailVerifier";
+import { EmailVerification } from "@/types/lead";
 import { APIDashboard } from "@/components/api-dashboard/APIDashboard";
 import { LiveActivity } from "@/components/workforce/LiveActivity";
 import { TimeLogs } from "@/components/workforce/TimeLogs";
@@ -420,7 +422,51 @@ const CRMApp = () => {
                     }}
                     onMarkActive={() => { bulkSetActive(selectedIds, true); setSelectedIds(new Set()); }}
                     onMarkInactive={() => { bulkSetActive(selectedIds, false); setSelectedIds(new Set()); }}
-                    onVerifyEmails={async () => {}}
+                    onVerifyEmails={async (types) => {
+                      const settings = loadMVSettings();
+                      const key = settings.useDemo ? "API_KEY_FOR_TEST" : settings.apiKey;
+                      if (!key) { toast.error("Configure your MillionVerifier API key in Email Verifier → API Settings."); return; }
+                      const targets = leads.filter(l => selectedIds.has(l.id));
+                      const fieldMap = { work: { email: "email", db: "email_verification", front: "emailVerification" }, personal1: { email: "personalEmail", db: "personal_email_verification", front: "personalEmailVerification" }, personal2: { email: "personalEmail2", db: "personal_email2_verification", front: "personalEmail2Verification" } } as const;
+                      const tasks: { id: string; email: string; dbField: string }[] = [];
+                      for (const l of targets) {
+                        for (const t of types) {
+                          const m = fieldMap[t];
+                          const email = (l as any)[m.email]?.trim();
+                          if (email) tasks.push({ id: l.id, email, dbField: m.db });
+                        }
+                      }
+                      if (tasks.length === 0) { toast.error("No emails to verify in selected leads."); return; }
+                      setBulkVerifying(true);
+                      const tId = toast.loading(`Verifying ${tasks.length} email${tasks.length !== 1 ? "s" : ""}...`);
+                      let ok = 0, fail = 0;
+                      for (const task of tasks) {
+                        try {
+                          const data = await verifySingle(key, task.email);
+                          if (data.error && data.result === "error") { fail++; continue; }
+                          const verification: EmailVerification = {
+                            quality: data.quality || "",
+                            result: data.result || "error",
+                            resultcode: data.resultcode || 0,
+                            subresult: data.subresult || "",
+                            free: !!data.free,
+                            role: !!data.role,
+                            didyoumean: data.didyoumean || "",
+                            esp: data._esp || getESP(task.email),
+                            verifiedAt: data._verifiedAt || new Date().toISOString(),
+                            creditsUsed: 1,
+                            fromCache: !!data.fromCache,
+                          };
+                          await updateLead(task.id, { [task.dbField]: verification } as any);
+                          ok++;
+                        } catch { fail++; }
+                      }
+                      toast.dismiss(tId);
+                      if (fail === 0) toast.success(`Verified ${ok} email${ok !== 1 ? "s" : ""} successfully`);
+                      else toast.warning(`Verified ${ok}, failed ${fail}`);
+                      setBulkVerifying(false);
+                      fetchLeads();
+                    }}
                     verifying={bulkVerifying}
                     onClear={() => setSelectedIds(new Set())}
                     isAdmin={isAdmin}
