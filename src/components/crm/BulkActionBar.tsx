@@ -43,12 +43,15 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
   const statusBtnRef = useRef<HTMLButtonElement>(null);
   const verifyBtnRef = useRef<HTMLButtonElement>(null);
   const deleteBtnRef = useRef<HTMLButtonElement>(null);
+  const folderBtnRef = useRef<HTMLButtonElement>(null);
   const statusDropRef = useRef<HTMLDivElement>(null);
   const verifyDropRef = useRef<HTMLDivElement>(null);
   const deleteDropRef = useRef<HTMLDivElement>(null);
+  const folderDropRef = useRef<HTMLDivElement>(null);
   const [statusPos, setStatusPos] = useState({ top: 0, left: 0 });
   const [verifyPos, setVerifyPos] = useState({ top: 0, left: 0 });
   const [deletePos, setDeletePos] = useState({ top: 0, left: 0 });
+  const [folderPos, setFolderPos] = useState({ top: 0, left: 0 });
 
   const updatePos = useCallback((ref: React.RefObject<HTMLButtonElement | null>, setter: (p: { top: number; left: number }) => void) => {
     if (!ref.current) return;
