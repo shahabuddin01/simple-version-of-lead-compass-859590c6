@@ -174,15 +174,17 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
           {verifyDropdown}
 
           {onMoveToFolder && (
-            <div className="relative">
+            <>
               <button
-                onClick={() => { setFolderOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); setDeleteOpen(false); }}
+                ref={folderBtnRef}
+                onMouseDown={(e) => { e.stopPropagation(); updatePos(folderBtnRef, setFolderPos); setFolderOpen(v => !v); setStatusOpen(false); setVerifyOpen(false); setDeleteOpen(false); }}
                 className={btnClass}>
                 <Folder className="h-3.5 w-3.5 text-muted-foreground" />
                 Folder <ChevronDown className="h-3 w-3 text-muted-foreground" />
               </button>
-              {folderOpen && (
-                <div className="absolute bottom-full mb-1 left-0 z-50 w-56 rounded-md border border-border bg-popover py-1 shadow-lg max-h-64 overflow-y-auto">
+              {folderOpen && ReactDOM.createPortal(
+                <div ref={folderDropRef} style={{ position: "fixed", top: folderPos.top, left: folderPos.left, zIndex: 99999, minWidth: 224 }}
+                  className="rounded-lg border border-border bg-popover py-1 shadow-lg max-h-72 overflow-y-auto">
                   <button onClick={() => { onMoveToFolder(""); setFolderOpen(false); }}
                     className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm font-medium text-muted-foreground hover:bg-accent">
                     <Folder className="h-3 w-3" /> Remove from Folder
@@ -210,9 +212,8 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
                       Create & Move
                     </button>
                   </div>
-                </div>
-              )}
-            </div>
+                </div>, document.body)}
+            </>
           )}
 
           {onAddToClientComm && (
