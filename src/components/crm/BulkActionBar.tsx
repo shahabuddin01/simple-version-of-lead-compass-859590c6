@@ -64,28 +64,30 @@ export function BulkActionBar({ count, onUpdateStatus, onMarkActive, onMarkInact
   }, []);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen && !deleteOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen && !folderOpen) return;
     const onScroll = () => {
       if (statusOpen) updatePos(statusBtnRef, setStatusPos);
       if (verifyOpen) updatePos(verifyBtnRef, setVerifyPos);
       if (deleteOpen) updatePos(deleteBtnRef, setDeletePos);
+      if (folderOpen) updatePos(folderBtnRef, setFolderPos);
     };
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onScroll);
     return () => { window.removeEventListener("scroll", onScroll, true); window.removeEventListener("resize", onScroll); };
-  }, [statusOpen, verifyOpen, deleteOpen, updatePos]);
+  }, [statusOpen, verifyOpen, deleteOpen, folderOpen, updatePos]);
 
   useEffect(() => {
-    if (!statusOpen && !verifyOpen && !deleteOpen) return;
+    if (!statusOpen && !verifyOpen && !deleteOpen && !folderOpen) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
       if (statusOpen && !statusBtnRef.current?.contains(t) && !statusDropRef.current?.contains(t)) setStatusOpen(false);
       if (verifyOpen && !verifyBtnRef.current?.contains(t) && !verifyDropRef.current?.contains(t)) setVerifyOpen(false);
       if (deleteOpen && !deleteBtnRef.current?.contains(t) && !deleteDropRef.current?.contains(t)) setDeleteOpen(false);
+      if (folderOpen && !folderBtnRef.current?.contains(t) && !folderDropRef.current?.contains(t)) setFolderOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [statusOpen, verifyOpen, deleteOpen]);
+  }, [statusOpen, verifyOpen, deleteOpen, folderOpen]);
 
   const toggleVerifyType = (type: "work" | "personal1" | "personal2") => {
     setVerifyTypes(prev => {
