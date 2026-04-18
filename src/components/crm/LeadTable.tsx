@@ -7,8 +7,16 @@ import { SocialLink } from "@/components/crm/SocialLink";
 import { Edit2, Trash2, Clock, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const LEADS_PER_PAGE = 50;
+const PAGE_SIZE_OPTIONS = [50, 100, 200, 500, 1000];
+const PAGE_SIZE_KEY = "nh_crm_leads_per_page";
+const getInitialPageSize = (): number => {
+  try {
+    const v = parseInt(localStorage.getItem(PAGE_SIZE_KEY) || "50", 10);
+    return PAGE_SIZE_OPTIONS.includes(v) ? v : 50;
+  } catch { return 50; }
+};
 
 const ESP_STYLES: Record<string, string> = {
   Google: "bg-blue-50 text-blue-600 border-blue-200",
@@ -160,12 +168,20 @@ const LeadRow = memo(function LeadRow({ lead, editable, isSelected, showCheckbox
 
 export function LeadTable({ leads, onToggleActive, onEdit, onDelete, canEditLead, selectedIds, onSelectionChange }: LeadTableProps) {
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState<number>(getInitialPageSize);
   const hasPersonalEmail2 = useMemo(() => leads.some(l => l.personalEmail2?.trim()), [leads]);
   const hasPersonalPhone2 = useMemo(() => leads.some(l => l.personalPhone2?.trim()), [leads]);
 
-  const totalPages = Math.max(1, Math.ceil(leads.length / LEADS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(leads.length / pageSize));
   const safePage = Math.min(page, totalPages - 1);
-  const pageLeads = useMemo(() => leads.slice(safePage * LEADS_PER_PAGE, (safePage + 1) * LEADS_PER_PAGE), [leads, safePage]);
+  const pageLeads = useMemo(() => leads.slice(safePage * pageSize, (safePage + 1) * pageSize), [leads, safePage, pageSize]);
+
+  const handlePageSizeChange = (val: string) => {
+    const next = parseInt(val, 10);
+    setPageSize(next);
+    setPage(0);
+    try { localStorage.setItem(PAGE_SIZE_KEY, String(next)); } catch {}
+  };
 
   // Reset page when leads change significantly
   useMemo(() => { if (page >= totalPages) setPage(0); }, [leads.length]);
@@ -254,38 +270,54 @@ export function LeadTable({ leads, onToggleActive, onEdit, onDelete, canEditLead
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-1">
-          <p className="text-xs text-muted-foreground">
-            Showing {safePage * LEADS_PER_PAGE + 1}–{Math.min((safePage + 1) * LEADS_PER_PAGE, leads.length)} of {leads.length} leads
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPage(p => Math.max(0, p - 1))}
-              disabled={safePage === 0}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+        <p className="text-xs text-muted-foreground">
+          Showing {safePage * pageSize + 1}–{Math.min((safePage + 1) * pageSize, leads.length)} of {leads.length} leads
+        </p>
+        <div className="flex items-center gap-3">
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
               <button
-                key={i}
-                onClick={() => setPage(i)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${i === safePage ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={safePage === 0}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
               >
-                {i + 1}
+                <ChevronLeft className="h-4 w-4" />
               </button>
-            )).slice(Math.max(0, safePage - 2), safePage + 3)}
-            <button
-              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-              disabled={safePage >= totalPages - 1}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${i === safePage ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"}`}
+                >
+                  {i + 1}
+                </button>
+              )).slice(Math.max(0, safePage - 2), safePage + 3)}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={safePage >= totalPages - 1}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent disabled:opacity-30 transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <label htmlFor="leads-per-page" className="text-xs text-muted-foreground">Show</label>
+            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+              <SelectTrigger id="leads-per-page" className="h-8 w-[90px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map(opt => (
+                  <SelectItem key={opt} value={String(opt)} className="text-xs">{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">per page</span>
           </div>
         </div>
-      )}
+      </div>
     </motion.div>
   );
 }
