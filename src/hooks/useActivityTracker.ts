@@ -127,9 +127,10 @@ export function getHourlyStats(): HourlyStat[] {
 export function getSalaryConfig(): SalaryConfig {
   return loadJSON(SALARY_KEY, {
     rates: {
-      Manager: { hourly: 250, monthlyBase: 45000 },
-      Employee: { hourly: 200, monthlyBase: 35000 },
-      Viewer: { hourly: 150, monthlyBase: 25000 },
+      admin: { hourly: 350, monthlyBase: 60000 },
+      manager: { hourly: 250, monthlyBase: 45000 },
+      user: { hourly: 200, monthlyBase: 35000 },
+      viewer: { hourly: 150, monthlyBase: 25000 },
     },
     calcMethod: "hourly_active" as const,
     bonusRules: [
@@ -155,9 +156,10 @@ export function getWorkforceSettings(): WorkforceSettings {
     currency: "৳",
     payCycle: "monthly" as const,
     hourlyRates: {
-      Manager: { regular: 300, overtime: 450, holiday: 600 },
-      Employee: { regular: 150, overtime: 225, holiday: 300 },
-      Viewer: { regular: 80, overtime: 120, holiday: 160 },
+      admin: { regular: 400, overtime: 600, holiday: 800 },
+      manager: { regular: 300, overtime: 450, holiday: 600 },
+      user: { regular: 150, overtime: 225, holiday: 300 },
+      viewer: { regular: 80, overtime: 120, holiday: 160 },
     },
   });
 }

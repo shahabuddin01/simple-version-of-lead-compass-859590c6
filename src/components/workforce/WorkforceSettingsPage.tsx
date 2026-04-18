@@ -51,7 +51,8 @@ export function WorkforceSettingsPage() {
     setSettings(s => ({ ...s, publicHolidays: s.publicHolidays.filter((_, i) => i !== index) }));
   };
 
-  const roles = ["Manager", "Employee", "Viewer"] as const;
+  const roles = ["admin", "manager", "user", "viewer"] as const;
+  const roleLabels: Record<string, string> = { admin: "Admin", manager: "Manager", user: "Employee", viewer: "Viewer" };
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -196,7 +197,7 @@ export function WorkforceSettingsPage() {
               <tbody>
                 {roles.map(role => (
                   <tr key={role} className="border-b border-border last:border-b-0">
-                    <td className="px-4 py-2.5 font-medium">{role}</td>
+                    <td className="px-4 py-2.5 font-medium">{roleLabels[role]}</td>
                     {(["regular", "overtime", "holiday"] as const).map(field => (
                       <td key={field} className="px-4 py-2.5">
                         <div className="flex items-center gap-1.5">

@@ -28,7 +28,7 @@ export function SalaryReport() {
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
 
   const salaryData = useMemo(() => {
-    const nonAdminUsers = users.filter(u => u.role !== "admin" && u.active);
+    const activeUsers = users.filter(u => u.active);
     const [year, month] = filterMonth.split("-").map(Number);
     const prefix = `${year}-${String(month).padStart(2, "0")}`;
     const overtimeThreshold = wfSettings.overtimeAfterHours;
@@ -50,7 +50,7 @@ export function SalaryReport() {
     }
     const billableDays = daysInMonth - weeklyOffCount - holidayCount;
 
-    return nonAdminUsers.map(user => {
+    return activeUsers.map(user => {
       const userSessions = sessions.filter(s => s.userId === user.id && s.date.startsWith(prefix));
       const userLogs = logs.filter(l => l.userId === user.id && l.date.startsWith(prefix));
 
