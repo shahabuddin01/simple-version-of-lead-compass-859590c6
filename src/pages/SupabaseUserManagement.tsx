@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSupabaseUsers, ManagedUser } from "@/hooks/useSupabaseUsers";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ShieldCheck, Shield, Eye, Briefcase, UserX, UserCheck, Loader2, Users } from "lucide-react";
+import { Plus, ShieldCheck, Shield, Eye, Briefcase, UserX, UserCheck, Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,11 @@ export function SupabaseUserManagement() {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "user" as AppRole });
   const [editingRole, setEditingRole] = useState<string | null>(null);
+  const [editUser, setEditUser] = useState<ManagedUser | null>(null);
+  const [editForm, setEditForm] = useState({ fullName: "", email: "", password: "" });
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deleteUser, setDeleteUser] = useState<ManagedUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const handleAddUser = async () => {
     if (!form.fullName || !form.email || !form.password) {
@@ -57,6 +62,63 @@ export function SupabaseUserManagement() {
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
     await updateUserRole(userId, newRole);
     setEditingRole(null);
+  };
+
+  const openEditModal = (user: ManagedUser) => {
+    setEditUser(user);
+    setEditForm({ fullName: user.fullName, email: user.email, password: "" });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editUser) return;
+    if (!editForm.fullName || !editForm.email) {
+      toast.error("Name and email are required");
+      return;
+    }
+    if (editForm.password && editForm.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      const body: any = {
+        user_id: editUser.userId,
+        full_name: editForm.fullName,
+        email: editForm.email,
+      };
+      if (editForm.password) body.password = editForm.password;
+
+      const { data, error } = await supabase.functions.invoke("update-user", { body });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("User updated");
+      setEditUser(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update user");
+    }
+    setSavingEdit(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteUser) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: deleteUser.userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(`User "${deleteUser.fullName}" deleted`);
+      setDeleteUser(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete user");
+    }
+    setDeleting(false);
   };
 
   if (loading) {
@@ -174,15 +236,33 @@ export function SupabaseUserManagement() {
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    {!isCurrentUser && (
+                    <div className="flex items-center justify-end gap-0.5">
                       <button
-                        onClick={() => toggleUserActive(user.userId, user.isActive)}
+                        onClick={() => openEditModal(user)}
                         className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                        title={user.isActive ? "Deactivate" : "Activate"}
+                        title="Edit user"
                       >
-                        {user.isActive ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
-                    )}
+                      {!isCurrentUser && (
+                        <>
+                          <button
+                            onClick={() => toggleUserActive(user.userId, user.isActive)}
+                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                            title={user.isActive ? "Deactivate" : "Activate"}
+                          >
+                            {user.isActive ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => setDeleteUser(user)}
+                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                            title="Delete user"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
@@ -236,6 +316,76 @@ export function SupabaseUserManagement() {
               <button onClick={handleAddUser} disabled={adding}
                 className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-all">
                 {adding ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating...</> : "Create User"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl space-y-4 mx-4">
+            <h3 className="text-base font-semibold text-foreground">Edit User</h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Full Name</label>
+                <input value={editForm.fullName} onChange={e => setEditForm({ ...editForm, fullName: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Email</label>
+                <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">New Password <span className="opacity-60">(leave blank to keep current)</span></label>
+                <input type="password" value={editForm.password} onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  placeholder="Min 6 characters" />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => setEditUser(null)} disabled={savingEdit}
+                className="rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleSaveEdit} disabled={savingEdit}
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-all">
+                {savingEdit ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl space-y-4 mx-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <Trash2 className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Delete User</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-sm text-foreground">
+              Are you sure you want to permanently delete <strong>{deleteUser.fullName || deleteUser.email}</strong>?
+              All their data, role, and login access will be removed.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => setDeleteUser(null)} disabled={deleting}
+                className="rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={deleting}
+                className="flex items-center gap-1.5 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow-sm hover:bg-destructive/90 disabled:opacity-50 transition-all">
+                {deleting ? <><Loader2 className="h-4 w-4 animate-spin" /> Deleting...</> : "Delete"}
               </button>
             </div>
           </div>
