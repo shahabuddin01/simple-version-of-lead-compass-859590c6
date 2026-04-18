@@ -244,7 +244,7 @@ function ClientModal({ open, onClose, client, onSave }: ClientModalProps) {
               </Select>
             </div>
             <div>
-              <Label>Lead Collected Date</Label>
+              <Label>Last Contact on Social Media</Label>
               <Input type="date" value={form.lead_collected_date} onChange={e => setForm(p => ({ ...p, lead_collected_date: e.target.value }))} />
             </div>
             <div>
