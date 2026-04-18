@@ -201,9 +201,11 @@ export function SalaryReport() {
         <div className="rounded-xl border border-border/60 bg-card p-4 space-y-4">
           <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Salary Configuration</h3>
           <div className="space-y-3">
-            {["Manager", "Employee", "Viewer"].map(role => (
+            {(["admin", "manager", "user", "viewer"] as const).map(role => {
+              const label = role === "user" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
+              return (
               <div key={role} className="flex items-center gap-3 text-xs">
-                <span className="w-16 font-medium">{role}</span>
+                <span className="w-16 font-medium">{label}</span>
                 <label className="flex items-center gap-1">
                   Hourly:
                   <input type="number" value={config.rates[role]?.hourly || 0}
@@ -217,7 +219,8 @@ export function SalaryReport() {
                     className="w-24 rounded-lg border border-input bg-background px-2 py-1 text-xs" />
                 </label>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="space-y-2">
