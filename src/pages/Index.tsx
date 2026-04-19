@@ -37,7 +37,7 @@ import { toast } from "sonner";
 
 const Index = () => {
   const { currentUser, permissions, rolePermissions, sessionExpired, sessionWarning, concurrentSessionKicked, dismissSessionExpired, dismissConcurrentKick, extendSession, logout } = useAuth();
-  const { trackAction } = useActivityTracker(currentUser);
+  const { trackAction } = useActivityTracker(currentUser ? { id: currentUser.id, fullName: currentUser.name, role: currentUser.role } : null);
 
   const {
     leads, filteredLeads, view, setView, filter, setFilter,
