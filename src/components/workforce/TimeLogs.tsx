@@ -94,7 +94,7 @@ export function TimeLogs() {
     if (filterDateTo) results = results.filter(r => r.date <= filterDateTo);
 
     return results;
-  }, [sessions, filterUser, filterRole, filterDateFrom, filterDateTo]);
+  }, [sessions, hourly, filterUser, filterRole, filterDateFrom, filterDateTo]);
 
   const fmtMs = (ms: number) => {
     const h = Math.floor(ms / 3600000);
