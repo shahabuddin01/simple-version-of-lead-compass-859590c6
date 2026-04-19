@@ -28,6 +28,7 @@ import { TimeLogs } from "@/components/workforce/TimeLogs";
 import { SalaryReport } from "@/components/workforce/SalaryReport";
 import { WorkforceSettingsPage } from "@/components/workforce/WorkforceSettingsPage";
 import { MyActivity } from "@/components/workforce/MyActivity";
+import { useActivityTracker } from "@/hooks/useActivityTracker";
 
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
