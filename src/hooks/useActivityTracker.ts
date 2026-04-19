@@ -170,7 +170,6 @@ export function buildDailyActivitySummaries(
   sessions.forEach((session) => {
     const key = `${session.userId}_${session.date}`;
     const existing = map.get(key);
-    const sessionEnd = session.endTime || session.startTime;
     const idleTime = session.idlePeriods.reduce((sum, period) => sum + (period.end - period.start), 0);
 
     if (!existing) {
@@ -181,7 +180,7 @@ export function buildDailyActivitySummaries(
         date: session.date,
         sessions: [session],
         firstStart: session.startTime,
-        lastActivity: sessionEnd,
+        lastActivity: session.startTime,
         totalDuration: 0,
         activeTime: 0,
         idleTime,
@@ -193,7 +192,7 @@ export function buildDailyActivitySummaries(
 
     existing.sessions.push(session);
     existing.firstStart = Math.min(existing.firstStart, session.startTime);
-    existing.lastActivity = Math.max(existing.lastActivity, sessionEnd);
+    existing.lastActivity = Math.max(existing.lastActivity, session.startTime);
     existing.idleTime += idleTime;
   });
 
