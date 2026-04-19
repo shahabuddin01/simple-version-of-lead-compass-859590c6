@@ -1,6 +1,12 @@
 import { useEffect, useRef, useCallback } from "react";
-import { AppUser } from "@/types/auth";
 import { supabase } from "@/integrations/supabase/client";
+
+// Minimal user shape — works with both legacy AppUser and SupabaseAppUser
+export interface TrackerUser {
+  id: string;
+  fullName: string;
+  role: string;
+}
 
 // ── Types ──
 export type ActivityAction =
