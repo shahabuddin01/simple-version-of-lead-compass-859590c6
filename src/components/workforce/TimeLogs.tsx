@@ -38,29 +38,52 @@ export function TimeLogs() {
     const map = new Map<string, {
       userId: string; userName: string; role: string; date: string;
       sessions: TimeSession[];
+      firstStart: number; lastActivity: number;
       totalDuration: number; activeTime: number; idleTime: number;
       totalActions: number; totalClicks: number;
     }>();
 
+    // 1. Group sessions per user/day → use earliest start & latest end as time bounds
     sessions.forEach(s => {
       const key = `${s.userId}_${s.date}`;
       if (!map.has(key)) {
         map.set(key, {
           userId: s.userId, userName: s.userName, role: s.role, date: s.date,
-          sessions: [], totalDuration: 0, activeTime: 0, idleTime: 0,
+          sessions: [], firstStart: s.startTime, lastActivity: s.endTime || s.startTime,
+          totalDuration: 0, activeTime: 0, idleTime: 0,
           totalActions: 0, totalClicks: 0,
         });
       }
       const entry = map.get(key)!;
       entry.sessions.push(s);
-      const end = s.endTime || Date.now();
-      const dur = end - s.startTime;
-      entry.totalDuration += dur;
+      if (s.startTime < entry.firstStart) entry.firstStart = s.startTime;
+      const sessionEnd = s.endTime || s.startTime;
+      if (sessionEnd > entry.lastActivity) entry.lastActivity = sessionEnd;
       const idle = s.idlePeriods.reduce((sum, p) => sum + (p.end - p.start), 0);
       entry.idleTime += idle;
-      entry.activeTime += dur - idle;
-      entry.totalActions += s.totalActions;
-      entry.totalClicks += s.totalClicks;
+    });
+
+    // 2. Use hourly_stats (reliable) for clicks/actions
+    //    and to refine "lastActivity" — last hour with activity = end-of-day bound
+    hourly.forEach(h => {
+      const key = `${h.userId}_${h.date}`;
+      const entry = map.get(key);
+      if (!entry) return;
+      entry.totalClicks += h.clicks;
+      entry.totalActions += h.actions;
+      // Hour's end-of-window if there was activity in it
+      if (h.clicks > 0 || h.actions > 0) {
+        const hourEnd = new Date(entry.date + "T00:00:00").getTime() + (h.hour + 1) * 3600000;
+        if (hourEnd > entry.lastActivity && hourEnd <= Date.now()) {
+          entry.lastActivity = hourEnd;
+        }
+      }
+    });
+
+    // 3. Compute duration = lastActivity - firstStart, active = duration - idle
+    map.forEach(entry => {
+      entry.totalDuration = Math.max(0, entry.lastActivity - entry.firstStart);
+      entry.activeTime = Math.max(0, entry.totalDuration - entry.idleTime);
     });
 
     let results = [...map.values()].sort((a, b) => b.date.localeCompare(a.date));
@@ -71,7 +94,7 @@ export function TimeLogs() {
     if (filterDateTo) results = results.filter(r => r.date <= filterDateTo);
 
     return results;
-  }, [sessions, filterUser, filterRole, filterDateFrom, filterDateTo]);
+  }, [sessions, hourly, filterUser, filterRole, filterDateFrom, filterDateTo]);
 
   const fmtMs = (ms: number) => {
     const h = Math.floor(ms / 3600000);
