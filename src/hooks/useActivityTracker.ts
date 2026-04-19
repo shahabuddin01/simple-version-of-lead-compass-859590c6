@@ -146,6 +146,80 @@ function mapHourlyRow(r: any): HourlyStat {
   };
 }
 
+export interface DailyActivitySummary {
+  userId: string;
+  userName: string;
+  role: string;
+  date: string;
+  sessions: TimeSession[];
+  firstStart: number;
+  lastActivity: number;
+  totalDuration: number;
+  activeTime: number;
+  idleTime: number;
+  totalActions: number;
+  totalClicks: number;
+}
+
+export function buildDailyActivitySummaries(
+  sessions: TimeSession[],
+  hourly: HourlyStat[]
+): DailyActivitySummary[] {
+  const map = new Map<string, DailyActivitySummary>();
+
+  sessions.forEach((session) => {
+    const key = `${session.userId}_${session.date}`;
+    const existing = map.get(key);
+    const idleTime = session.idlePeriods.reduce((sum, period) => sum + (period.end - period.start), 0);
+
+    if (!existing) {
+      map.set(key, {
+        userId: session.userId,
+        userName: session.userName,
+        role: session.role,
+        date: session.date,
+        sessions: [session],
+        firstStart: session.startTime,
+        lastActivity: session.startTime,
+        totalDuration: 0,
+        activeTime: 0,
+        idleTime,
+        totalActions: 0,
+        totalClicks: 0,
+      });
+      return;
+    }
+
+    existing.sessions.push(session);
+    existing.firstStart = Math.min(existing.firstStart, session.startTime);
+    existing.lastActivity = Math.max(existing.lastActivity, session.startTime);
+    existing.idleTime += idleTime;
+  });
+
+  hourly.forEach((stat) => {
+    const key = `${stat.userId}_${stat.date}`;
+    const entry = map.get(key);
+    if (!entry) return;
+
+    entry.totalClicks += stat.clicks;
+    entry.totalActions += stat.actions;
+
+    if (stat.clicks > 0 || stat.actions > 0) {
+      const hourEnd = new Date(`${entry.date}T00:00:00`).getTime() + (stat.hour + 1) * 3600000;
+      if (hourEnd > entry.lastActivity && hourEnd <= Date.now()) {
+        entry.lastActivity = hourEnd;
+      }
+    }
+  });
+
+  map.forEach((entry) => {
+    entry.totalDuration = Math.max(0, entry.lastActivity - entry.firstStart);
+    entry.activeTime = Math.max(0, entry.totalDuration - entry.idleTime);
+  });
+
+  return [...map.values()];
+}
+
 // ── Public API (now async, Supabase-backed) ──
 export async function getActivityLogs(): Promise<ActivityLog[]> {
   const { data, error } = await supabase
