@@ -173,7 +173,7 @@ export function LiveActivity() {
           <p className="text-xs text-muted-foreground mt-0.5">Real-time employee monitoring</p>
         </div>
         <button
-          onClick={() => setRefreshKey(k => k + 1)}
+          onClick={handleRefresh}
           className="flex items-center gap-1.5 rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent active:scale-[0.98]"
         >
           <RefreshCw className="h-3 w-3" /> Refresh
