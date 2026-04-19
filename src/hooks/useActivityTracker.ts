@@ -232,7 +232,7 @@ export function saveWorkforceSettings(settings: WorkforceSettings) {
 }
 
 // ── Internal write helpers (Supabase) ──
-async function insertLog(user: AppUser, action: ActivityAction, sessionId: string, meta?: Record<string, any>) {
+async function insertLog(user: TrackerUser, action: ActivityAction, sessionId: string, meta?: Record<string, any>) {
   await supabase.from("activity_logs").insert({
     user_id: user.id,
     user_name: user.fullName,
@@ -276,7 +276,7 @@ async function upsertHourlyStat(userId: string, date: string, hour: number, isCl
   }
 }
 
-async function startSessionDB(user: AppUser): Promise<string> {
+async function startSessionDB(user: TrackerUser): Promise<string> {
   const sessionId = genSessionId();
   const now = new Date().toISOString();
   await supabase.from("time_sessions").insert({
@@ -294,7 +294,7 @@ async function startSessionDB(user: AppUser): Promise<string> {
   return sessionId;
 }
 
-async function endSessionDB(sessionId: string, user: AppUser) {
+async function endSessionDB(sessionId: string, user: TrackerUser) {
   const { data: session } = await supabase
     .from("time_sessions")
     .select("end_time")
@@ -383,7 +383,7 @@ export function getScoreBadge(score: number): { label: string; emoji: string; co
 }
 
 // ── Hook ──
-export function useActivityTracker(user: AppUser | null) {
+export function useActivityTracker(user: TrackerUser | null) {
   const sessionIdRef = useRef<string | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const isIdleRef = useRef(false);
