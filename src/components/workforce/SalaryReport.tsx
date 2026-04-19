@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { X, Download, Settings2, CalendarDays, Timer, TrendingUp, Wallet } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
 
 export function SalaryReport() {
   const { users: supabaseUsers } = useSupabaseUsers();
@@ -28,10 +29,15 @@ export function SalaryReport() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
 
-  useEffect(() => {
+  const refresh = () => {
     Promise.all([getTimeSessions(), getActivityLogs()])
       .then(([s, l]) => { setSessions(s); setLogs(l); });
-  }, []);
+  };
+
+  useEffect(() => { refresh(); }, []);
+
+  // Live updates
+  useRealtimeTable(["time_sessions", "activity_logs"], refresh, "salary-rt");
 
   const salaryData = useMemo(() => {
     const activeUsers = users.filter(u => u.active);

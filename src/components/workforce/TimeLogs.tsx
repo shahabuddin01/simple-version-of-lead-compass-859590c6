@@ -7,6 +7,7 @@ import {
 import { X, Clock, Zap, MousePointerClick, CalendarDays } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
 
 export function TimeLogs() {
   const { users: supabaseUsers } = useSupabaseUsers();
@@ -23,10 +24,15 @@ export function TimeLogs() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
 
-  useEffect(() => {
+  const refresh = () => {
     Promise.all([getTimeSessions(), getHourlyStats(), getActivityLogs()])
       .then(([s, h, l]) => { setSessions(s); setHourly(h); setLogs(l); });
-  }, []);
+  };
+
+  useEffect(() => { refresh(); }, []);
+
+  // Live updates across all tracking tables
+  useRealtimeTable(["time_sessions", "hourly_stats", "activity_logs"], refresh, "timelogs-rt");
 
   const dailySummaries = useMemo(() => {
     const map = new Map<string, {
