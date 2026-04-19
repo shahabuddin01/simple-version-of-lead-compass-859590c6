@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   getActivityLogs, getTimeSessions, getHourlyStats,
   calcProductivityScore, getScoreBadge, getSalaryConfig,
+  ActivityLog, TimeSession, HourlyStat,
 } from "@/hooks/useActivityTracker";
 import { Clock, MousePointerClick, Zap, TrendingUp, CalendarDays, Timer, BarChart3, Wallet, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,10 +19,15 @@ export function MyActivity() {
   const dateStr = new Date().toISOString().split("T")[0];
   const monthPrefix = dateStr.slice(0, 7);
 
-  const logs = useMemo(() => getActivityLogs(), []);
-  const sessions = useMemo(() => getTimeSessions(), []);
-  const hourly = useMemo(() => getHourlyStats(), []);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [sessions, setSessions] = useState<TimeSession[]>([]);
+  const [hourly, setHourly] = useState<HourlyStat[]>([]);
   const config = useMemo(() => getSalaryConfig(), []);
+
+  useEffect(() => {
+    Promise.all([getActivityLogs(), getTimeSessions(), getHourlyStats()])
+      .then(([l, s, h]) => { setLogs(l); setSessions(s); setHourly(h); });
+  }, []);
 
   // Today
   const todayLogs = useMemo(() => logs.filter(l => l.userId === userId && l.date === dateStr), [logs, userId, dateStr]);
