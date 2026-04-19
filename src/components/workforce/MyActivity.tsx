@@ -8,6 +8,7 @@ import {
 } from "@/hooks/useActivityTracker";
 import { Clock, MousePointerClick, Zap, TrendingUp, CalendarDays, Timer, BarChart3, Wallet, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
 
 export function MyActivity() {
   const { appUser } = useSupabaseAuth();
@@ -24,10 +25,15 @@ export function MyActivity() {
   const [hourly, setHourly] = useState<HourlyStat[]>([]);
   const config = useMemo(() => getSalaryConfig(), []);
 
-  useEffect(() => {
+  const refresh = () => {
     Promise.all([getActivityLogs(), getTimeSessions(), getHourlyStats()])
       .then(([l, s, h]) => { setLogs(l); setSessions(s); setHourly(h); });
-  }, []);
+  };
+
+  useEffect(() => { refresh(); }, []);
+
+  // Live updates
+  useRealtimeTable(["time_sessions", "activity_logs", "hourly_stats"], refresh, "myactivity-rt");
 
   // Today
   const todayLogs = useMemo(() => logs.filter(l => l.userId === userId && l.date === dateStr), [logs, userId, dateStr]);

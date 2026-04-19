@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
 
 export interface ManagedUser {
   id: string;
@@ -53,6 +54,9 @@ export const useSupabaseUsers = () => {
   }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  // Live updates when profiles or roles change anywhere
+  useRealtimeTable(["profiles", "user_roles"], fetchUsers, "users-realtime");
 
   const updateUserRole = useCallback(async (userId: string, newRole: "admin" | "manager" | "viewer" | "user") => {
     const { error } = await supabase
