@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          date: string
+          id: string
+          meta: Json | null
+          role: string
+          session_id: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          date: string
+          id?: string
+          meta?: Json | null
+          role?: string
+          session_id?: string | null
+          user_id: string
+          user_name?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          date?: string
+          id?: string
+          meta?: Json | null
+          role?: string
+          session_id?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       email_verification_cache: {
         Row: {
           didyoumean: string | null
@@ -56,6 +92,39 @@ export type Database = {
           role?: boolean | null
           subresult?: string | null
           verified_at?: string
+        }
+        Relationships: []
+      }
+      hourly_stats: {
+        Row: {
+          action_breakdown: Json
+          actions: number
+          clicks: number
+          date: string
+          hour: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_breakdown?: Json
+          actions?: number
+          clicks?: number
+          date: string
+          hour: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_breakdown?: Json
+          actions?: number
+          clicks?: number
+          date?: string
+          hour?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -185,6 +254,54 @@ export type Database = {
           is_active?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      time_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          end_time: string | null
+          id: string
+          idle_periods: Json
+          role: string
+          session_id: string
+          start_time: string
+          total_actions: number
+          total_clicks: number
+          updated_at: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          end_time?: string | null
+          id?: string
+          idle_periods?: Json
+          role?: string
+          session_id: string
+          start_time?: string
+          total_actions?: number
+          total_clicks?: number
+          updated_at?: string
+          user_id: string
+          user_name?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_time?: string | null
+          id?: string
+          idle_periods?: Json
+          role?: string
+          session_id?: string
+          start_time?: string
+          total_actions?: number
+          total_clicks?: number
+          updated_at?: string
+          user_id?: string
+          user_name?: string
         }
         Relationships: []
       }

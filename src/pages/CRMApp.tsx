@@ -28,6 +28,7 @@ import { TimeLogs } from "@/components/workforce/TimeLogs";
 import { SalaryReport } from "@/components/workforce/SalaryReport";
 import { WorkforceSettingsPage } from "@/components/workforce/WorkforceSettingsPage";
 import { MyActivity } from "@/components/workforce/MyActivity";
+import { useActivityTracker } from "@/hooks/useActivityTracker";
 
 import { Lead, ViewMode } from "@/types/lead";
 import { getIndustryTree } from "@/lib/leadUtils";
@@ -178,6 +179,7 @@ function toSupabaseFields(data: Omit<Lead, "id" | "dateAdded">): Partial<Supabas
 
 const CRMApp = () => {
   const { appUser, isAdmin, logout } = useSupabaseAuth();
+  useActivityTracker(appUser ? { id: appUser.id, fullName: appUser.fullName, role: appUser.role } : null);
   const {
     leads: supabaseLeads, filteredLeads: supabaseFilteredLeads, loading,
     filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,

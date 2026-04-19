@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSupabaseUsers } from "@/hooks/useSupabaseUsers";
 import {
   getTimeSessions, getActivityLogs,
   getSalaryConfig, saveSalaryConfig, SalaryConfig,
   getWorkforceSettings, isWorkingDay,
   calcProductivityScore, getScoreBadge,
+  TimeSession, ActivityLog,
 } from "@/hooks/useActivityTracker";
 import { toast } from "sonner";
 import { X, Download, Settings2, CalendarDays, Timer, TrendingUp, Wallet } from "lucide-react";
@@ -23,9 +24,14 @@ export function SalaryReport() {
   });
   const [detailUser, setDetailUser] = useState<string | null>(null);
 
-  const sessions = useMemo(() => getTimeSessions(), []);
-  const logs = useMemo(() => getActivityLogs(), []);
+  const [sessions, setSessions] = useState<TimeSession[]>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
+
+  useEffect(() => {
+    Promise.all([getTimeSessions(), getActivityLogs()])
+      .then(([s, l]) => { setSessions(s); setLogs(l); });
+  }, []);
 
   const salaryData = useMemo(() => {
     const activeUsers = users.filter(u => u.active);

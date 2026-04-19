@@ -1,5 +1,12 @@
 import { useEffect, useRef, useCallback } from "react";
-import { AppUser } from "@/types/auth";
+import { supabase } from "@/integrations/supabase/client";
+
+// Minimal user shape — works with both legacy AppUser and SupabaseAppUser
+export interface TrackerUser {
+  id: string;
+  fullName: string;
+  role: string;
+}
 
 // ── Types ──
 export type ActivityAction =
@@ -71,10 +78,7 @@ export interface WorkforceSettings {
   hourlyRates: Record<string, HourlyRateConfig>;
 }
 
-// ── Storage Keys ──
-const LOGS_KEY = "nhproductionhouse_activity_logs";
-const SESSIONS_KEY = "nhproductionhouse_time_sessions";
-const HOURLY_KEY = "nhproductionhouse_hourly_stats";
+// ── Storage Keys (config still local — same for everyone) ──
 const SALARY_KEY = "nhproductionhouse_salary_config";
 const SETTINGS_KEY = "nhproductionhouse_workforce_settings";
 
@@ -102,26 +106,75 @@ function saveJSON(key: string, data: any) {
   } catch {}
 }
 
-function compressOldLogs() {
-  const logs: ActivityLog[] = loadJSON(LOGS_KEY, []);
-  const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
-  const recent = logs.filter(l => l.timestamp >= cutoff);
-  if (recent.length < logs.length) {
-    saveJSON(LOGS_KEY, recent);
-  }
+// ── Row mappers (DB ↔ frontend types) ──
+function mapSessionRow(r: any): TimeSession {
+  return {
+    userId: r.user_id,
+    userName: r.user_name,
+    role: r.role,
+    sessionId: r.session_id,
+    date: r.date,
+    startTime: new Date(r.start_time).getTime(),
+    endTime: r.end_time ? new Date(r.end_time).getTime() : null,
+    idlePeriods: Array.isArray(r.idle_periods) ? r.idle_periods : [],
+    totalActions: r.total_actions || 0,
+    totalClicks: r.total_clicks || 0,
+  };
 }
 
-// ── Public API ──
-export function getActivityLogs(): ActivityLog[] {
-  return loadJSON(LOGS_KEY, []);
+function mapLogRow(r: any): ActivityLog {
+  return {
+    userId: r.user_id,
+    userName: r.user_name,
+    role: r.role,
+    action: r.action as ActivityAction,
+    timestamp: new Date(r.created_at).getTime(),
+    sessionId: r.session_id || "",
+    date: r.date,
+    meta: r.meta || undefined,
+  };
 }
 
-export function getTimeSessions(): TimeSession[] {
-  return loadJSON(SESSIONS_KEY, []);
+function mapHourlyRow(r: any): HourlyStat {
+  return {
+    userId: r.user_id,
+    date: r.date,
+    hour: r.hour,
+    clicks: r.clicks || 0,
+    actions: r.actions || 0,
+    actionBreakdown: r.action_breakdown || {},
+  };
 }
 
-export function getHourlyStats(): HourlyStat[] {
-  return loadJSON(HOURLY_KEY, []);
+// ── Public API (now async, Supabase-backed) ──
+export async function getActivityLogs(): Promise<ActivityLog[]> {
+  const { data, error } = await supabase
+    .from("activity_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(5000);
+  if (error || !data) return [];
+  return data.map(mapLogRow);
+}
+
+export async function getTimeSessions(): Promise<TimeSession[]> {
+  const { data, error } = await supabase
+    .from("time_sessions")
+    .select("*")
+    .order("start_time", { ascending: false })
+    .limit(5000);
+  if (error || !data) return [];
+  return data.map(mapSessionRow);
+}
+
+export async function getHourlyStats(): Promise<HourlyStat[]> {
+  const { data, error } = await supabase
+    .from("hourly_stats")
+    .select("*")
+    .order("date", { ascending: false })
+    .limit(5000);
+  if (error || !data) return [];
+  return data.map(mapHourlyRow);
 }
 
 export function getSalaryConfig(): SalaryConfig {
@@ -178,75 +231,125 @@ export function saveWorkforceSettings(settings: WorkforceSettings) {
   saveJSON(SETTINGS_KEY, settings);
 }
 
-export function logActivity(log: ActivityLog) {
-  const logs = getActivityLogs();
-  logs.push(log);
-  saveJSON(LOGS_KEY, logs);
-}
-
-function updateHourlyStat(userId: string, date: string, hour: number, isClick: boolean, action?: ActivityAction) {
-  const stats = getHourlyStats();
-  let stat = stats.find(s => s.userId === userId && s.date === date && s.hour === hour);
-  if (!stat) {
-    stat = { userId, date, hour, clicks: 0, actions: 0, actionBreakdown: {} };
-    stats.push(stat);
-  }
-  if (isClick) stat.clicks++;
-  if (action && action !== "session_start" && action !== "session_end") {
-    stat.actions++;
-    stat.actionBreakdown[action] = (stat.actionBreakdown[action] || 0) + 1;
-  }
-  saveJSON(HOURLY_KEY, stats);
-}
-
-function startSession(user: AppUser): string {
-  const sessionId = genSessionId();
-  const now = Date.now();
-  const session: TimeSession = {
-    userId: user.id, userName: user.name, role: user.role,
-    sessionId, date: today(), startTime: now, endTime: null,
-    idlePeriods: [], totalActions: 0, totalClicks: 0,
-  };
-  const sessions = getTimeSessions();
-  sessions.push(session);
-  saveJSON(SESSIONS_KEY, sessions);
-
-  logActivity({
-    userId: user.id, userName: user.name, role: user.role,
-    action: "session_start", timestamp: now, sessionId, date: today(),
+// ── Internal write helpers (Supabase) ──
+async function insertLog(user: TrackerUser, action: ActivityAction, sessionId: string, meta?: Record<string, any>) {
+  await supabase.from("activity_logs").insert({
+    user_id: user.id,
+    user_name: user.fullName,
+    role: user.role,
+    action,
+    session_id: sessionId,
+    date: today(),
+    meta: meta || null,
   });
-
-  return sessionId;
 }
 
-function endSession(sessionId: string) {
-  const sessions = getTimeSessions();
-  const session = sessions.find(s => s.sessionId === sessionId);
-  if (session && !session.endTime) {
-    session.endTime = Date.now();
-    saveJSON(SESSIONS_KEY, sessions);
-    logActivity({
-      userId: session.userId, userName: session.userName, role: session.role,
-      action: "session_end", timestamp: Date.now(), sessionId, date: today(),
+async function upsertHourlyStat(userId: string, date: string, hour: number, isClick: boolean, action?: ActivityAction) {
+  // Read existing
+  const { data: existing } = await supabase
+    .from("hourly_stats")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("date", date)
+    .eq("hour", hour)
+    .maybeSingle();
+
+  const breakdown: Record<string, number> = (existing?.action_breakdown as Record<string, number>) || {};
+  let clicks = existing?.clicks || 0;
+  let actions = existing?.actions || 0;
+
+  if (isClick) clicks++;
+  if (action && action !== "session_start" && action !== "session_end") {
+    actions++;
+    breakdown[action] = (breakdown[action] || 0) + 1;
+  }
+
+  if (existing) {
+    await supabase
+      .from("hourly_stats")
+      .update({ clicks, actions, action_breakdown: breakdown, updated_at: new Date().toISOString() })
+      .eq("id", existing.id);
+  } else {
+    await supabase.from("hourly_stats").insert({
+      user_id: userId, date, hour, clicks, actions, action_breakdown: breakdown,
     });
   }
 }
 
-function updateSessionStats(sessionId: string, clicks: number) {
-  const sessions = getTimeSessions();
-  const session = sessions.find(s => s.sessionId === sessionId);
-  if (session) {
-    session.totalClicks += clicks;
-    saveJSON(SESSIONS_KEY, sessions);
+async function startSessionDB(user: TrackerUser): Promise<string> {
+  const sessionId = genSessionId();
+  const now = new Date().toISOString();
+  await supabase.from("time_sessions").insert({
+    user_id: user.id,
+    user_name: user.fullName,
+    role: user.role,
+    session_id: sessionId,
+    date: today(),
+    start_time: now,
+    idle_periods: [],
+    total_actions: 0,
+    total_clicks: 0,
+  });
+  await insertLog(user, "session_start", sessionId);
+  return sessionId;
+}
+
+async function endSessionDB(sessionId: string, user: TrackerUser) {
+  const { data: session } = await supabase
+    .from("time_sessions")
+    .select("end_time")
+    .eq("session_id", sessionId)
+    .maybeSingle();
+  if (session && !session.end_time) {
+    await supabase
+      .from("time_sessions")
+      .update({ end_time: new Date().toISOString() })
+      .eq("session_id", sessionId);
+    await insertLog(user, "session_end", sessionId);
   }
 }
 
-function markSessionIdle(sessionId: string, idleStart: number) {
-  const sessions = getTimeSessions();
-  const session = sessions.find(s => s.sessionId === sessionId);
-  if (session) {
-    session.idlePeriods.push({ start: idleStart, end: Date.now() });
-    saveJSON(SESSIONS_KEY, sessions);
+async function updateSessionClicks(sessionId: string, increment: number) {
+  const { data: s } = await supabase
+    .from("time_sessions")
+    .select("total_clicks")
+    .eq("session_id", sessionId)
+    .maybeSingle();
+  if (s) {
+    await supabase
+      .from("time_sessions")
+      .update({ total_clicks: (s.total_clicks || 0) + increment })
+      .eq("session_id", sessionId);
+  }
+}
+
+async function incrementSessionActions(sessionId: string) {
+  const { data: s } = await supabase
+    .from("time_sessions")
+    .select("total_actions")
+    .eq("session_id", sessionId)
+    .maybeSingle();
+  if (s) {
+    await supabase
+      .from("time_sessions")
+      .update({ total_actions: (s.total_actions || 0) + 1 })
+      .eq("session_id", sessionId);
+  }
+}
+
+async function appendIdlePeriod(sessionId: string, idleStart: number) {
+  const { data: s } = await supabase
+    .from("time_sessions")
+    .select("idle_periods")
+    .eq("session_id", sessionId)
+    .maybeSingle();
+  if (s) {
+    const periods = Array.isArray(s.idle_periods) ? s.idle_periods : [];
+    periods.push({ start: idleStart, end: Date.now() });
+    await supabase
+      .from("time_sessions")
+      .update({ idle_periods: periods })
+      .eq("session_id", sessionId);
   }
 }
 
@@ -280,12 +383,11 @@ export function getScoreBadge(score: number): { label: string; emoji: string; co
 }
 
 // ── Hook ──
-export function useActivityTracker(user: AppUser | null) {
+export function useActivityTracker(user: TrackerUser | null) {
   const sessionIdRef = useRef<string | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const isIdleRef = useRef(false);
   const idleStartRef = useRef<number>(0);
-  const clickBufferRef = useRef(0);
 
   const trackAction = useCallback((action: ActivityAction, meta?: Record<string, any>) => {
     if (!user || !sessionIdRef.current) return;
@@ -293,43 +395,39 @@ export function useActivityTracker(user: AppUser | null) {
     lastActivityRef.current = now;
 
     if (isIdleRef.current) {
-      markSessionIdle(sessionIdRef.current, idleStartRef.current);
+      appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
       isIdleRef.current = false;
     }
 
-    logActivity({
-      userId: user.id, userName: user.name, role: user.role,
-      action, timestamp: now, sessionId: sessionIdRef.current, date: today(), meta,
-    });
-
+    const sid = sessionIdRef.current;
+    insertLog(user, action, sid, meta);
     const hour = new Date().getHours();
-    updateHourlyStat(user.id, today(), hour, false, action);
-
-    const sessions = getTimeSessions();
-    const session = sessions.find(s => s.sessionId === sessionIdRef.current);
-    if (session) {
-      session.totalActions++;
-      saveJSON(SESSIONS_KEY, sessions);
-    }
+    upsertHourlyStat(user.id, today(), hour, false, action);
+    incrementSessionActions(sid);
   }, [user]);
 
   useEffect(() => {
     if (!user) return;
-    compressOldLogs();
-    const sid = startSession(user);
-    sessionIdRef.current = sid;
-    lastActivityRef.current = Date.now();
+    let cancelled = false;
+
+    (async () => {
+      const sid = await startSessionDB(user);
+      if (cancelled) return;
+      sessionIdRef.current = sid;
+      lastActivityRef.current = Date.now();
+    })();
 
     const handleClick = () => {
       lastActivityRef.current = Date.now();
-      clickBufferRef.current++;
       if (isIdleRef.current && sessionIdRef.current) {
-        markSessionIdle(sessionIdRef.current, idleStartRef.current);
+        appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
         isIdleRef.current = false;
       }
-      const hour = new Date().getHours();
-      updateHourlyStat(user.id, today(), hour, true);
-      updateSessionStats(sessionIdRef.current!, 1);
+      if (sessionIdRef.current) {
+        const hour = new Date().getHours();
+        upsertHourlyStat(user.id, today(), hour, true);
+        updateSessionClicks(sessionIdRef.current, 1);
+      }
     };
 
     document.addEventListener("click", handleClick, true);
@@ -341,10 +439,8 @@ export function useActivityTracker(user: AppUser | null) {
     const idleInterval = setInterval(() => {
       const elapsed = Date.now() - lastActivityRef.current;
       if (elapsed >= autoEndMs && sessionIdRef.current) {
-        if (isIdleRef.current) {
-          markSessionIdle(sessionIdRef.current, idleStartRef.current);
-        }
-        endSession(sessionIdRef.current);
+        if (isIdleRef.current) appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
+        endSessionDB(sessionIdRef.current, user);
         sessionIdRef.current = null;
       } else if (elapsed >= idleMs && !isIdleRef.current) {
         isIdleRef.current = true;
@@ -354,39 +450,34 @@ export function useActivityTracker(user: AppUser | null) {
 
     const handleUnload = () => {
       if (sessionIdRef.current) {
-        if (isIdleRef.current) {
-          markSessionIdle(sessionIdRef.current, idleStartRef.current);
-        }
-        endSession(sessionIdRef.current);
+        if (isIdleRef.current) appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
+        endSessionDB(sessionIdRef.current, user);
       }
     };
     window.addEventListener("beforeunload", handleUnload);
 
-    return () => {
-      document.removeEventListener("click", handleClick, true);
-      clearInterval(idleInterval);
-      window.removeEventListener("beforeunload", handleUnload);
-      if (sessionIdRef.current) {
-        if (isIdleRef.current) {
-          markSessionIdle(sessionIdRef.current, idleStartRef.current);
-        }
-        endSession(sessionIdRef.current);
-      }
-    };
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
     const handleResume = () => {
       if (!sessionIdRef.current) {
-        const sid = startSession(user);
-        sessionIdRef.current = sid;
-        lastActivityRef.current = Date.now();
-        isIdleRef.current = false;
+        startSessionDB(user).then(sid => {
+          sessionIdRef.current = sid;
+          lastActivityRef.current = Date.now();
+          isIdleRef.current = false;
+        });
       }
     };
     document.addEventListener("click", handleResume);
-    return () => document.removeEventListener("click", handleResume);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("click", handleClick, true);
+      document.removeEventListener("click", handleResume);
+      clearInterval(idleInterval);
+      window.removeEventListener("beforeunload", handleUnload);
+      if (sessionIdRef.current) {
+        if (isIdleRef.current) appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
+        endSessionDB(sessionIdRef.current, user);
+      }
+    };
   }, [user]);
 
   return { trackAction };

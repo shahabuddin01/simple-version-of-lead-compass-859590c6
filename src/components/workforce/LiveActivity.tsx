@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useSupabaseUsers } from "@/hooks/useSupabaseUsers";
+import { supabase } from "@/integrations/supabase/client";
 import {
   getActivityLogs, getTimeSessions, getHourlyStats,
   ActivityLog, TimeSession, HourlyStat,
@@ -23,22 +24,48 @@ interface EmployeeStatus {
 }
 
 export function LiveActivity() {
-  const { appUser } = useSupabaseAuth();
+  const { users: supabaseUsers } = useSupabaseUsers();
+  const users = useMemo(
+    () => supabaseUsers.map(u => ({ id: u.userId, name: u.fullName, role: u.role })),
+    [supabaseUsers]
+  );
   const isMobile = useIsMobile();
-  const users: { id: string; name: string; role: string }[] = appUser ? [{ id: appUser.id, name: appUser.fullName, role: appUser.role }] : [];
   const [refreshKey, setRefreshKey] = useState(0);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const dateStr = new Date().toISOString().split("T")[0];
 
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [sessions, setSessions] = useState<TimeSession[]>([]);
+  const [hourly, setHourly] = useState<HourlyStat[]>([]);
+
+  // Fetch on mount + every refresh + every 15s
   useEffect(() => {
-    const iv = setInterval(() => setRefreshKey(k => k + 1), 15000);
-    return () => clearInterval(iv);
+    let cancelled = false;
+    const fetchAll = () => {
+      Promise.all([getActivityLogs(), getTimeSessions(), getHourlyStats()])
+        .then(([l, s, h]) => {
+          if (cancelled) return;
+          setLogs(l); setSessions(s); setHourly(h);
+        });
+    };
+    fetchAll();
+    const iv = setInterval(() => { fetchAll(); setRefreshKey(k => k + 1); }, 15000);
+
+    // Realtime subscription for live updates
+    const channel = supabase
+      .channel("workforce-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "time_sessions" }, fetchAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "activity_logs" }, fetchAll)
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const employeeStatuses = useMemo(() => {
-    const logs = getActivityLogs();
-    const sessions = getTimeSessions();
-    const hourly = getHourlyStats();
     const settings = getWorkforceSettings();
     const now = Date.now();
     const idleMs = settings.idleThresholdMinutes * 60 * 1000;
@@ -98,7 +125,12 @@ export function LiveActivity() {
       return order[a.status] - order[b.status];
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users, refreshKey]);
+  }, [users, logs, sessions, hourly, refreshKey, dateStr]);
+
+  const handleRefresh = () => {
+    Promise.all([getActivityLogs(), getTimeSessions(), getHourlyStats()])
+      .then(([l, s, h]) => { setLogs(l); setSessions(s); setHourly(h); setRefreshKey(k => k + 1); });
+  };
 
   const fmtMinutes = (m: number) => {
     if (m < 1) return "—";
@@ -141,7 +173,7 @@ export function LiveActivity() {
           <p className="text-xs text-muted-foreground mt-0.5">Real-time employee monitoring</p>
         </div>
         <button
-          onClick={() => setRefreshKey(k => k + 1)}
+          onClick={handleRefresh}
           className="flex items-center gap-1.5 rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent active:scale-[0.98]"
         >
           <RefreshCw className="h-3 w-3" /> Refresh
