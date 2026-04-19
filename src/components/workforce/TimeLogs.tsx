@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSupabaseUsers } from "@/hooks/useSupabaseUsers";
 import {
   getTimeSessions, getHourlyStats, getActivityLogs, getWorkforceSettings, isWorkingDay,
-  calcProductivityScore, getScoreBadge, TimeSession,
+  calcProductivityScore, getScoreBadge, TimeSession, ActivityLog, HourlyStat,
 } from "@/hooks/useActivityTracker";
 import { X, Clock, Zap, MousePointerClick, CalendarDays } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,10 +18,15 @@ export function TimeLogs() {
   const [filterDateTo, setFilterDateTo] = useState("");
   const [detailSession, setDetailSession] = useState<string | null>(null);
 
-  const sessions = useMemo(() => getTimeSessions(), []);
-  const hourly = useMemo(() => getHourlyStats(), []);
-  const logs = useMemo(() => getActivityLogs(), []);
+  const [sessions, setSessions] = useState<TimeSession[]>([]);
+  const [hourly, setHourly] = useState<HourlyStat[]>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
+
+  useEffect(() => {
+    Promise.all([getTimeSessions(), getHourlyStats(), getActivityLogs()])
+      .then(([s, h, l]) => { setSessions(s); setHourly(h); setLogs(l); });
+  }, []);
 
   const dailySummaries = useMemo(() => {
     const map = new Map<string, {
