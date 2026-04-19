@@ -178,6 +178,7 @@ function toSupabaseFields(data: Omit<Lead, "id" | "dateAdded">): Partial<Supabas
 
 const CRMApp = () => {
   const { appUser, isAdmin, logout } = useSupabaseAuth();
+  useActivityTracker(appUser ? { id: appUser.id, fullName: appUser.fullName, role: appUser.role } : null);
   const {
     leads: supabaseLeads, filteredLeads: supabaseFilteredLeads, loading,
     filter, setFilter, sortBy, setSortBy, stats, industries, companies, folders,
