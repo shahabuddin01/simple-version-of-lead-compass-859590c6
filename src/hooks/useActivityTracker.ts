@@ -383,6 +383,44 @@ export function getScoreBadge(score: number): { label: string; emoji: string; co
 }
 
 // ── Hook ──
+// Per-tab session storage key — survives StrictMode double-mount, route changes, and remounts.
+// Cleared only on real tab close / logout.
+const TAB_SESSION_KEY = "nh_active_session_id";
+const TAB_SESSION_USER_KEY = "nh_active_session_user";
+const TAB_SESSION_DATE_KEY = "nh_active_session_date";
+
+async function ensureSession(user: TrackerUser): Promise<string> {
+  // Try to reuse existing tab session if same user & same date & still open in DB
+  const existingSid = sessionStorage.getItem(TAB_SESSION_KEY);
+  const existingUser = sessionStorage.getItem(TAB_SESSION_USER_KEY);
+  const existingDate = sessionStorage.getItem(TAB_SESSION_DATE_KEY);
+
+  if (existingSid && existingUser === user.id && existingDate === today()) {
+    // Verify it still exists and is open in DB
+    const { data } = await supabase
+      .from("time_sessions")
+      .select("session_id, end_time")
+      .eq("session_id", existingSid)
+      .maybeSingle();
+    if (data && !data.end_time) {
+      return existingSid;
+    }
+  }
+
+  // Otherwise create a new one and remember it for this tab
+  const sid = await startSessionDB(user);
+  sessionStorage.setItem(TAB_SESSION_KEY, sid);
+  sessionStorage.setItem(TAB_SESSION_USER_KEY, user.id);
+  sessionStorage.setItem(TAB_SESSION_DATE_KEY, today());
+  return sid;
+}
+
+function clearTabSession() {
+  sessionStorage.removeItem(TAB_SESSION_KEY);
+  sessionStorage.removeItem(TAB_SESSION_USER_KEY);
+  sessionStorage.removeItem(TAB_SESSION_DATE_KEY);
+}
+
 export function useActivityTracker(user: TrackerUser | null) {
   const sessionIdRef = useRef<string | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
@@ -411,7 +449,7 @@ export function useActivityTracker(user: TrackerUser | null) {
     let cancelled = false;
 
     (async () => {
-      const sid = await startSessionDB(user);
+      const sid = await ensureSession(user);
       if (cancelled) return;
       sessionIdRef.current = sid;
       lastActivityRef.current = Date.now();
@@ -427,6 +465,15 @@ export function useActivityTracker(user: TrackerUser | null) {
         const hour = new Date().getHours();
         upsertHourlyStat(user.id, today(), hour, true);
         updateSessionClicks(sessionIdRef.current, 1);
+      } else {
+        // Session was auto-ended due to inactivity — restart
+        ensureSession(user).then(sid => {
+          if (!cancelled) {
+            sessionIdRef.current = sid;
+            lastActivityRef.current = Date.now();
+            isIdleRef.current = false;
+          }
+        });
       }
     };
 
@@ -441,6 +488,7 @@ export function useActivityTracker(user: TrackerUser | null) {
       if (elapsed >= autoEndMs && sessionIdRef.current) {
         if (isIdleRef.current) appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
         endSessionDB(sessionIdRef.current, user);
+        clearTabSession();
         sessionIdRef.current = null;
       } else if (elapsed >= idleMs && !isIdleRef.current) {
         isIdleRef.current = true;
@@ -448,35 +496,31 @@ export function useActivityTracker(user: TrackerUser | null) {
       }
     }, 30000);
 
-    const handleUnload = () => {
-      if (sessionIdRef.current) {
-        if (isIdleRef.current) appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
-        endSessionDB(sessionIdRef.current, user);
-      }
+    // Reliable session-end on real tab close. visibilitychange+pagehide are
+    // more reliable than beforeunload on mobile/modern browsers.
+    const closeSessionSync = () => {
+      const sid = sessionIdRef.current;
+      if (!sid) return;
+      // Use sendBeacon-style fire-and-forget; supabase client doesn't expose beacon,
+      // but the update fires before tab dies in most cases.
+      if (isIdleRef.current) appendIdlePeriod(sid, idleStartRef.current);
+      endSessionDB(sid, user);
+      clearTabSession();
+      sessionIdRef.current = null;
     };
-    window.addEventListener("beforeunload", handleUnload);
 
-    const handleResume = () => {
-      if (!sessionIdRef.current) {
-        startSessionDB(user).then(sid => {
-          sessionIdRef.current = sid;
-          lastActivityRef.current = Date.now();
-          isIdleRef.current = false;
-        });
-      }
-    };
-    document.addEventListener("click", handleResume);
+    const handlePageHide = () => closeSessionSync();
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("beforeunload", handlePageHide);
 
     return () => {
       cancelled = true;
       document.removeEventListener("click", handleClick, true);
-      document.removeEventListener("click", handleResume);
       clearInterval(idleInterval);
-      window.removeEventListener("beforeunload", handleUnload);
-      if (sessionIdRef.current) {
-        if (isIdleRef.current) appendIdlePeriod(sessionIdRef.current, idleStartRef.current);
-        endSessionDB(sessionIdRef.current, user);
-      }
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("beforeunload", handlePageHide);
+      // IMPORTANT: do NOT end session on React unmount (StrictMode, route change,
+      // remounts). Session is only ended on real tab close (pagehide) or auto-idle.
     };
   }, [user]);
 
