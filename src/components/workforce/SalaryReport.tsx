@@ -1,11 +1,20 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSupabaseUsers } from "@/hooks/useSupabaseUsers";
 import {
-  getTimeSessions, getActivityLogs,
-  getSalaryConfig, saveSalaryConfig, SalaryConfig,
-  getWorkforceSettings, isWorkingDay,
-  calcProductivityScore, getScoreBadge,
-  TimeSession, ActivityLog,
+  getTimeSessions,
+  getActivityLogs,
+  getHourlyStats,
+  getSalaryConfig,
+  saveSalaryConfig,
+  SalaryConfig,
+  getWorkforceSettings,
+  isWorkingDay,
+  calcProductivityScore,
+  getScoreBadge,
+  buildDailyActivitySummaries,
+  TimeSession,
+  ActivityLog,
+  HourlyStat,
 } from "@/hooks/useActivityTracker";
 import { toast } from "sonner";
 import { X, Download, Settings2, CalendarDays, Timer, TrendingUp, Wallet } from "lucide-react";
@@ -15,7 +24,7 @@ import { useRealtimeTable } from "@/hooks/useRealtimeTable";
 
 export function SalaryReport() {
   const { users: supabaseUsers } = useSupabaseUsers();
-  const users = supabaseUsers.map(u => ({ id: u.userId, name: u.fullName, role: u.role, active: u.isActive }));
+  const users = supabaseUsers.map((u) => ({ id: u.userId, name: u.fullName, role: u.role, active: u.isActive }));
   const isMobile = useIsMobile();
   const [config, setConfig] = useState<SalaryConfig>(getSalaryConfig);
   const [showConfig, setShowConfig] = useState(false);
@@ -27,20 +36,25 @@ export function SalaryReport() {
 
   const [sessions, setSessions] = useState<TimeSession[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [hourly, setHourly] = useState<HourlyStat[]>([]);
   const wfSettings = useMemo(() => getWorkforceSettings(), []);
 
   const refresh = () => {
-    Promise.all([getTimeSessions(), getActivityLogs()])
-      .then(([s, l]) => { setSessions(s); setLogs(l); });
+    Promise.all([getTimeSessions(), getActivityLogs(), getHourlyStats()]).then(([s, l, h]) => {
+      setSessions(s);
+      setLogs(l);
+      setHourly(h);
+    });
   };
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh();
+  }, []);
 
-  // Live updates
-  useRealtimeTable(["time_sessions", "activity_logs"], refresh, "salary-rt");
+  useRealtimeTable(["time_sessions", "activity_logs", "hourly_stats"], refresh, "salary-rt");
 
   const salaryData = useMemo(() => {
-    const activeUsers = users.filter(u => u.active);
+    const activeUsers = users.filter((u) => u.active);
     const [year, month] = filterMonth.split("-").map(Number);
     const prefix = `${year}-${String(month).padStart(2, "0")}`;
     const overtimeThreshold = wfSettings.overtimeAfterHours;
@@ -48,91 +62,107 @@ export function SalaryReport() {
     const daysInMonth = new Date(year, month, 0).getDate();
     let weeklyOffCount = 0;
     let holidayCount = 0;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, month - 1, d);
-      if (wfSettings.weeklyOffDays.includes(date.getDay())) weeklyOffCount++;
-      else {
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month - 1, day);
+      if (wfSettings.weeklyOffDays.includes(date.getDay())) {
+        weeklyOffCount++;
+      } else {
         const dateStr = date.toISOString().split("T")[0];
-        const isHoliday = wfSettings.publicHolidays.some(h => {
-          if (h.repeatYearly) return h.date.slice(5) === dateStr.slice(5);
-          return h.date === dateStr;
+        const isHoliday = wfSettings.publicHolidays.some((holiday) => {
+          if (holiday.repeatYearly) return holiday.date.slice(5) === dateStr.slice(5);
+          return holiday.date === dateStr;
         });
         if (isHoliday) holidayCount++;
       }
     }
     const billableDays = daysInMonth - weeklyOffCount - holidayCount;
 
-    return activeUsers.map(user => {
-      const userSessions = sessions.filter(s => s.userId === user.id && s.date.startsWith(prefix));
-      const userLogs = logs.filter(l => l.userId === user.id && l.date.startsWith(prefix));
+    const monthlySummaries = buildDailyActivitySummaries(
+      sessions.filter((session) => session.date.startsWith(prefix)),
+      hourly.filter((stat) => stat.date.startsWith(prefix))
+    );
 
-      const dailyMap = new Map<string, { activeMs: number; isHoliday: boolean }>();
-      userSessions.forEach(s => {
-        const end = s.endTime || Date.now();
-        const dur = end - s.startTime;
-        const idle = s.idlePeriods.reduce((sum, p) => sum + (p.end - p.start), 0);
-        const active = dur - idle;
-        const existing = dailyMap.get(s.date) || { activeMs: 0, isHoliday: false };
-        existing.activeMs += active;
-        const dateObj = new Date(s.date + "T00:00:00");
-        if (!isWorkingDay(dateObj, wfSettings)) existing.isHoliday = true;
-        dailyMap.set(s.date, existing);
-      });
+    return activeUsers.map((user) => {
+      const userDailySummaries = monthlySummaries.filter((summary) => summary.userId === user.id);
+      const userLogs = logs.filter((log) => log.userId === user.id && log.date.startsWith(prefix));
 
-      const workingDays = dailyMap.size;
-      let totalActiveMs = 0, totalDurationMs = 0, totalIdleMs = 0;
-      userSessions.forEach(s => {
-        const end = s.endTime || Date.now();
-        const dur = end - s.startTime;
-        const idle = s.idlePeriods.reduce((sum, p) => sum + (p.end - p.start), 0);
-        totalDurationMs += dur;
-        totalIdleMs += idle;
-        totalActiveMs += dur - idle;
-      });
+      const workingDays = userDailySummaries.length;
+      const totalActiveMs = userDailySummaries.reduce((sum, day) => sum + day.activeTime, 0);
+      const totalDurationMs = userDailySummaries.reduce((sum, day) => sum + day.totalDuration, 0);
+      const totalIdleMs = userDailySummaries.reduce((sum, day) => sum + day.idleTime, 0);
+      const totalActions = userDailySummaries.reduce((sum, day) => sum + day.totalActions, 0);
+      const totalClicks = userDailySummaries.reduce((sum, day) => sum + day.totalClicks, 0);
 
       const roleRates = wfSettings.hourlyRates[user.role] || { regular: 0, overtime: 0, holiday: 0 };
 
-      let totalBasePay = 0, totalRegularHours = 0, totalOvertimeHours = 0, totalHolidayHours = 0;
-      dailyMap.forEach(({ activeMs, isHoliday: isHol }) => {
-        const activeHrs = activeMs / 3600000;
-        if (isHol) {
-          totalHolidayHours += activeHrs;
-          totalBasePay += activeHrs * roleRates.holiday;
-        } else {
-          const regular = Math.min(activeHrs, overtimeThreshold);
-          const overtime = Math.max(0, activeHrs - overtimeThreshold);
-          totalRegularHours += regular;
-          totalOvertimeHours += overtime;
-          totalBasePay += regular * roleRates.regular + overtime * roleRates.overtime;
+      let totalBasePay = 0;
+      let totalRegularHours = 0;
+      let totalOvertimeHours = 0;
+      let totalHolidayHours = 0;
+
+      userDailySummaries.forEach((day) => {
+        const activeHours = day.activeTime / 3600000;
+        const isHoliday = !isWorkingDay(new Date(`${day.date}T00:00:00`), wfSettings);
+
+        if (isHoliday) {
+          totalHolidayHours += activeHours;
+          totalBasePay += activeHours * roleRates.holiday;
+          return;
         }
+
+        const regularHours = Math.min(activeHours, overtimeThreshold);
+        const overtimeHours = Math.max(0, activeHours - overtimeThreshold);
+        totalRegularHours += regularHours;
+        totalOvertimeHours += overtimeHours;
+        totalBasePay += regularHours * roleRates.regular + overtimeHours * roleRates.overtime;
       });
 
-      const totalActions = userLogs.filter(l => l.action !== "session_start" && l.action !== "session_end").length;
-      const totalClicks = userSessions.reduce((sum, s) => sum + s.totalClicks, 0);
-      const leadsAdded = userLogs.filter(l => l.action === "lead_added").length;
-      const leadsEdited = userLogs.filter(l => l.action === "lead_edited").length;
-
-      const score = calcProductivityScore(totalActiveMs / 60000, totalDurationMs / 60000, totalActions, totalClicks, leadsAdded + leadsEdited);
+      const leadsAdded = userLogs.filter((log) => log.action === "lead_added").length;
+      const leadsEdited = userLogs.filter((log) => log.action === "lead_edited").length;
+      const score = calcProductivityScore(
+        totalActiveMs / 60000,
+        totalDurationMs / 60000,
+        totalActions,
+        totalClicks,
+        leadsAdded + leadsEdited
+      );
 
       let bonusPercent = 0;
-      for (const rule of config.bonusRules.sort((a, b) => b.minScore - a.minScore)) {
-        if (score >= rule.minScore) { bonusPercent = rule.bonusPercent; break; }
+      for (const rule of [...config.bonusRules].sort((a, b) => b.minScore - a.minScore)) {
+        if (score >= rule.minScore) {
+          bonusPercent = rule.bonusPercent;
+          break;
+        }
       }
       const bonus = totalBasePay * bonusPercent / 100;
 
       return {
-        userId: user.id, userName: user.name, role: user.role,
-        workingDays, activeHours: totalActiveMs / 3600000, totalHours: totalDurationMs / 3600000,
-        idleHours: totalIdleMs / 3600000, regularHours: totalRegularHours,
-        overtimeHours: totalOvertimeHours, holidayHours: totalHolidayHours,
-        regularRate: roleRates.regular, overtimeRate: roleRates.overtime, holidayRate: roleRates.holiday,
-        score, badge: getScoreBadge(score),
-        basePay: Math.round(totalBasePay), bonus: Math.round(bonus),
+        userId: user.id,
+        userName: user.name,
+        role: user.role,
+        workingDays,
+        activeHours: totalActiveMs / 3600000,
+        totalHours: totalDurationMs / 3600000,
+        idleHours: totalIdleMs / 3600000,
+        regularHours: totalRegularHours,
+        overtimeHours: totalOvertimeHours,
+        holidayHours: totalHolidayHours,
+        regularRate: roleRates.regular,
+        overtimeRate: roleRates.overtime,
+        holidayRate: roleRates.holiday,
+        score,
+        badge: getScoreBadge(score),
+        basePay: Math.round(totalBasePay),
+        bonus: Math.round(bonus),
         totalSalary: Math.round(totalBasePay + bonus),
-        leadsAdded, leadsEdited, billableDays, weeklyOffCount, holidayCount,
+        leadsAdded,
+        leadsEdited,
+        billableDays,
+        weeklyOffCount,
+        holidayCount,
       };
     });
-  }, [users, sessions, logs, filterMonth, config, wfSettings]);
+  }, [users, sessions, logs, hourly, filterMonth, config, wfSettings]);
 
   const handleSaveConfig = () => {
     saveSalaryConfig(config);
